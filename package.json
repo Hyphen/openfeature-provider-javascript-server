@@ -1,0 +1,25 @@
+{
+  "name": "openfeature-provider-javascript-server",
+  "version": "0.1.0",
+  "description": "The official Hyphen Toggle OpenFeature Provider",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hyphen/openfeature-provider-javascript-server.git"
+  },
+  "keywords": [
+    "toggle",
+    "openfeature",
+    "provider",
+    "hyphen"
+  ],
+  "author": "@hyphen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Hyphen/openfeature-provider-javascript-server/issues"
+  },
+  "homepage": "https://github.com/Hyphen/openfeature-provider-javascript-server#readme"
+}
