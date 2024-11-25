@@ -4,18 +4,16 @@ import {
   EvaluationContext,
   Hook,
   HookContext,
-  HookHints,
   JsonValue,
-  Logger,
   OpenFeatureEventEmitter,
   Paradigm,
   Provider,
   ResolutionDetails,
   StandardResolutionReasons,
-} from "@openfeature/server-sdk";
+} from '@openfeature/server-sdk';
 
-import pkg from "../package.json";
-import NodeCache from "@cacheable/node-cache";
+import pkg from '../package.json';
+import NodeCache from '@cacheable/node-cache';
 
 export type clientContext = {
   targetingKey: string;
@@ -46,7 +44,7 @@ export interface HyphenEvaluationContext extends EvaluationContext {
 export interface Evaluation {
   key: string;
   value: boolean | string | number | Record<string, any>;
-  type: "boolean" | "string" | "number" | "object";
+  type: 'boolean' | 'string' | 'number' | 'object';
   reason: string;
   errorMessage: string;
 }
@@ -64,7 +62,7 @@ export class HyphenProvider implements Provider {
   public runsOn?: Paradigm;
   public hooks: Hook[];
   public metadata = {
-    name: "hyphen-toggle-node",
+    name: 'hyphen-toggle-node',
     version: pkg.version,
   };
 
@@ -72,7 +70,7 @@ export class HyphenProvider implements Provider {
     this.publicKey = publicKey;
     this.application = application;
     this.environment = environment;
-    this.runsOn = "server";
+    this.runsOn = 'server';
     this.events = new OpenFeatureEventEmitter();
     this.hooks = [
       {
@@ -88,9 +86,7 @@ export class HyphenProvider implements Provider {
     });
   }
 
-  private getTargetingKey(
-    hyphenEvaluationContext: HyphenEvaluationContext
-  ): string {
+  private getTargetingKey(hyphenEvaluationContext: HyphenEvaluationContext): string {
     if (hyphenEvaluationContext.targetingKey) {
       return hyphenEvaluationContext.targetingKey;
     }
@@ -98,20 +94,16 @@ export class HyphenProvider implements Provider {
       return hyphenEvaluationContext.user.id;
     }
     // TODO: what is a better way to do this? Should we also have a service property so we don't add the random value?
-    return `${this.application}-${this.environment}-${Math.random()
-      .toString(36)
-      .substring(7)}`;
+    return `${this.application}-${this.environment}-${Math.random().toString(36).substring(7)}`;
   }
 
   beforeHook = async (
     hookContext: BeforeHookContext,
-    hints: HookHints
+    // hints: HookHints
   ): Promise<EvaluationContext> => {
     hookContext.context.application = this.application;
     hookContext.context.environment = this.environment;
-    hookContext.context.targetingKey = this.getTargetingKey(
-      hookContext.context as HyphenEvaluationContext
-    );
+    hookContext.context.targetingKey = this.getTargetingKey(hookContext.context as HyphenEvaluationContext);
     this.validateContext(hookContext.context);
     return hookContext.context;
   };
@@ -119,21 +111,21 @@ export class HyphenProvider implements Provider {
   errorHook = async (
     hookContext: HookContext,
     error: unknown,
-    hints: HookHints
+    // hints: HookHints
   ): Promise<void> => {
     if (error instanceof Error) {
-      hookContext.logger.error("Error", error.message);
+      hookContext.logger.error('Error', error.message);
     } else {
-      hookContext.logger.error("Error", error);
+      hookContext.logger.error('Error', error);
     }
   };
 
   finallyHook = async (
     hookContext: HookContext,
-    hints: HookHints
+    // hints: HookHints
   ): Promise<void> => {
     // This is a good place to log client usage. This will be post MVP
-    hookContext.logger.info("logging usage");
+    hookContext.logger.info('logging usage');
   };
 
   wrongType<T>(value: T): ResolutionDetails<T> {
@@ -148,7 +140,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: boolean,
     context: EvaluationContext,
-    logger: Logger
+    // logger: Logger
   ): Promise<ResolutionDetails<boolean>> {
     const evaluations = await this.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles[flagKey];
@@ -161,7 +153,7 @@ export class HyphenProvider implements Provider {
       };
     }
 
-    if (evaluation?.type !== "boolean") {
+    if (evaluation?.type !== 'boolean') {
       return this.wrongType(defaultValue);
     }
 
@@ -178,7 +170,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: string,
     context: EvaluationContext,
-    logger: Logger
+    // logger: Logger
   ): Promise<ResolutionDetails<string>> {
     const evaluations = await this.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles[flagKey];
@@ -191,7 +183,7 @@ export class HyphenProvider implements Provider {
       };
     }
 
-    if (evaluation?.type !== "string") {
+    if (evaluation?.type !== 'string') {
       return this.wrongType(defaultValue);
     }
 
@@ -206,7 +198,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: number,
     context: EvaluationContext,
-    logger: Logger
+    // logger: Logger
   ): Promise<ResolutionDetails<number>> {
     const evaluations = await this.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles[flagKey];
@@ -219,7 +211,7 @@ export class HyphenProvider implements Provider {
       };
     }
 
-    if (evaluation?.type !== "number") {
+    if (evaluation?.type !== 'number') {
       return this.wrongType(defaultValue);
     }
 
@@ -234,7 +226,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: T,
     context: EvaluationContext,
-    logger: Logger
+    // logger: Logger
   ): Promise<ResolutionDetails<T>> {
     const evaluations = await this.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles[flagKey];
@@ -247,7 +239,7 @@ export class HyphenProvider implements Provider {
       };
     }
 
-    if (evaluation?.type !== "object") {
+    if (evaluation?.type !== 'object') {
       return this.wrongType(defaultValue);
     }
 
@@ -267,17 +259,14 @@ export class HyphenProvider implements Provider {
     // TODO: This should be refactored to a Client Class. This should also
     // Have logic use an array of URLS falling back to the next one if the first one fails.
     // This will be used later to support customer deploying there own edge nodes.
-    const response = await fetch(
-      "https://dev-horizon.hyphen.ai/toggle/evaluate",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": `${this.publicKey}`,
-        },
-        body: JSON.stringify(context),
-      }
-    );
+    const response = await fetch('https://dev-horizon.hyphen.ai/toggle/evaluate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': `${this.publicKey}`,
+      },
+      body: JSON.stringify(context),
+    });
 
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
@@ -290,16 +279,16 @@ export class HyphenProvider implements Provider {
 
   private validateContext(context: EvaluationContext): HyphenEvaluationContext {
     if (!context) {
-      throw new Error("Evaluation context is required");
+      throw new Error('Evaluation context is required');
     }
     if (!context.targetingKey) {
-      throw new Error("targetingKey is required");
+      throw new Error('targetingKey is required');
     }
     if (!context.application) {
-      throw new Error("application is required");
+      throw new Error('application is required');
     }
     if (!context.environment) {
-      throw new Error("environment is required");
+      throw new Error('environment is required');
     }
     return context as HyphenEvaluationContext;
   }
