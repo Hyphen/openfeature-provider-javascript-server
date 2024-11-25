@@ -27,6 +27,11 @@ export type clientContext = {
   };
 } & EvaluationContext;
 
+export type HyphenProviderOptions = {
+  application: string;
+  environment: string;
+}
+
 export interface HyphenEvaluationContext extends EvaluationContext {
   targetingKey: string;
   ipAddress: string;
@@ -55,8 +60,7 @@ export interface EvaluationResponse {
 
 export class HyphenProvider implements Provider {
   private readonly publicKey: string;
-  private readonly application: string;
-  private readonly environment: string;
+  private readonly options: HyphenProviderOptions;
   private cache: NodeCache;
   public events: OpenFeatureEventEmitter;
   public runsOn?: Paradigm;
@@ -66,10 +70,9 @@ export class HyphenProvider implements Provider {
     version: pkg.version,
   };
 
-  constructor(publicKey: string, application: string, environment: string) {
+  constructor(publicKey: string, options: HyphenProviderOptions) {
     this.publicKey = publicKey;
-    this.application = application;
-    this.environment = environment;
+    this.options = options;
     this.runsOn = 'server';
     this.events = new OpenFeatureEventEmitter();
     this.hooks = [
@@ -94,15 +97,15 @@ export class HyphenProvider implements Provider {
       return hyphenEvaluationContext.user.id;
     }
     // TODO: what is a better way to do this? Should we also have a service property so we don't add the random value?
-    return `${this.application}-${this.environment}-${Math.random().toString(36).substring(7)}`;
+    return `${this.options.application}-${this.options.environment}-${Math.random().toString(36).substring(7)}`;
   }
 
   beforeHook = async (
     hookContext: BeforeHookContext,
     // hints: HookHints
   ): Promise<EvaluationContext> => {
-    hookContext.context.application = this.application;
-    hookContext.context.environment = this.environment;
+    hookContext.context.application = this.options.application;
+    hookContext.context.environment = this.options.environment;
     hookContext.context.targetingKey = this.getTargetingKey(hookContext.context as HyphenEvaluationContext);
     this.validateContext(hookContext.context);
     return hookContext.context;
