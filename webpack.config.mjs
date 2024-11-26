@@ -28,6 +28,7 @@ const commonConfig = {
     "node:crypto": "commonjs crypto",
     "async_hooks": "commonjs async_hooks",
   },
+  mode: "none",
 };
 
 const esmConfig = {
@@ -49,6 +50,7 @@ const cjsConfig = {
     filename: "index.cjs.js",
     libraryTarget: "commonjs2",
   },
+  mode: "none",
 };
 
 export default [esmConfig, cjsConfig];
