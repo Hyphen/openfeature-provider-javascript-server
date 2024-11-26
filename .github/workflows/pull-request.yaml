@@ -1,0 +1,38 @@
+name: PR Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+# Cancel any jobs in-progress for the current branch
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup-build-deploy:
+    name: Deploy to Dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Setup Node
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Linter Check
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Run Build
+        run: npm run build
+
