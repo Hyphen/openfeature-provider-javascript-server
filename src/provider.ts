@@ -15,6 +15,7 @@ import {
 import pkg from '../package.json';
 import NodeCache from '@cacheable/node-cache';
 import { EvaluationResponse, HyphenEvaluationContext, HyphenProviderOptions } from '@/types';
+import { HORIZON_URL } from '@/config';
 
 export class HyphenProvider implements Provider {
   private readonly publicKey: string;
@@ -218,7 +219,7 @@ export class HyphenProvider implements Provider {
     }
 
     const serverUrls = this.options.horizonServerUrls ?? [];
-    serverUrls.push('https://dev-horizon.hyphen.ai/toggle/evaluate');
+    serverUrls.push(HORIZON_URL);
 
     let lastError: unknown;
 
