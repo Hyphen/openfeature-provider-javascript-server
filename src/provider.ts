@@ -14,8 +14,8 @@ import {
 
 import pkg from '../package.json';
 import NodeCache from '@cacheable/node-cache';
-import { EvaluationResponse, HyphenEvaluationContext, HyphenProviderOptions } from '@/types';
-import { HORIZON_URL } from '@/config';
+import type { EvaluationResponse, HyphenEvaluationContext, HyphenProviderOptions } from './types';
+import { HORIZON_URL } from './config';
 
 export class HyphenProvider implements Provider {
   private readonly publicKey: string;
