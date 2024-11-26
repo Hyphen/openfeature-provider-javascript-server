@@ -13,9 +13,13 @@ export type clientContext = {
 } & EvaluationContext;
 
 export type HyphenProviderOptions = {
+  /** The public key for the Hyphen project */
   application: string;
+  /** The environment for the Hyphen project */
   environment: string;
-}
+  /** The Hyphen server URL */
+  horizonServerUrls?: string[];
+};
 
 export interface HyphenEvaluationContext extends EvaluationContext {
   targetingKey: string;

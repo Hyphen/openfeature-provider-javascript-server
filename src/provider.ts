@@ -217,25 +217,39 @@ export class HyphenProvider implements Provider {
       return cacheResult as EvaluationResponse;
     }
 
-    // TODO: This should be refactored to a Client Class. This should also
-    // Have logic use an array of URLS falling back to the next one if the first one fails.
-    // This will be used later to support customer deploying there own edge nodes.
-    const response = await fetch('https://dev-horizon.hyphen.ai/toggle/evaluate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': `${this.publicKey}`,
-      },
-      body: JSON.stringify(context),
-    });
+    const serverUrls = this.options.horizonServerUrls ?? [];
+    serverUrls.push('https://dev-horizon.hyphen.ai/toggle/evaluate');
 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
+    let lastError: unknown;
+
+    for (const url of serverUrls) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': `${this.publicKey}`,
+          },
+          body: JSON.stringify(context),
+        });
+
+        if (response.ok) {
+          const data = (await response.json()) as EvaluationResponse;
+          this.cache.set(context.targetingKey, data);
+          return data;
+        } else {
+          lastError = new Error(`Error: ${await response.text()}`);
+        }
+      } catch (error) {
+        lastError = error;
+      }
     }
 
-    const data = (await response.json()) as EvaluationResponse;
-    this.cache.set(context.targetingKey, data);
-    return data;
+    if (lastError) {
+      throw lastError;
+    }
+
+    throw new Error('Unknown error occurred while evaluating context');
   }
 
   private validateContext(context: EvaluationContext): HyphenEvaluationContext {
