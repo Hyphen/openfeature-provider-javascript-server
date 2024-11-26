@@ -1,14 +1,14 @@
 import {
-  BeforeHookContext,
+  type BeforeHookContext,
   ErrorCode,
-  EvaluationContext,
-  Hook,
-  HookContext,
-  JsonValue,
+  type EvaluationContext,
+  type Hook,
+  type HookContext,
+  type JsonValue,
   OpenFeatureEventEmitter,
-  Paradigm,
-  Provider,
-  ResolutionDetails,
+  type Paradigm,
+  type Provider,
+  type ResolutionDetails,
   StandardResolutionReasons,
 } from '@openfeature/server-sdk';
 
