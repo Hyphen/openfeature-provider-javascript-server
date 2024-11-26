@@ -18,7 +18,8 @@
     "build:types": "tsc --project tsconfig.types.json",
     "build": "webpack build && npm run build:types",
     "lint": "eslint .",
-    "test": "vitest"
+    "test": "vitest --run",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
