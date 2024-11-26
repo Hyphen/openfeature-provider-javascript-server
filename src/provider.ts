@@ -173,7 +173,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
     const evaluations = await this.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles?.[flagKey];
 
-    const evaluationError = this.getEvaluationParseError(evaluation, 'object', defaultValue);
+    const evaluationError = this.getEvaluationParseError<T>(evaluation, 'object', defaultValue);
     if(evaluationError) return evaluationError;
 
     return {
