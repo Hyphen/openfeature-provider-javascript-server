@@ -55,9 +55,9 @@ console.log(flagDetails.value); // true or false
 
 ### Options
 
-| Option          | Type   | Description                                                        |
-|------------------|--------|--------------------------------------------------------------------|
-| `application`    | string | The name of your application.                                     |
+| Option          | Type   | Description                                                                           |
+|------------------|--------|---------------------------------------------------------------------------------------|
+| `application`    | string | The application id or alteernate id.                                                  |
 | `environment`    | string | The environment in which your application is running (e.g., `production`, `staging`). |
 
 ### Context
