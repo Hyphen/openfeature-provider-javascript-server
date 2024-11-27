@@ -90,7 +90,11 @@ export class HyphenProvider extends HyphenClient implements Provider {
     };
   }
 
-  private getEvaluationParseError<T>(evaluation: Evaluation, expectedType: Evaluation['type'], defaultValue: T): ResolutionDetails<T> | undefined{
+  private getEvaluationParseError<T>(
+    evaluation: Evaluation,
+    expectedType: Evaluation['type'],
+    defaultValue: T,
+  ): ResolutionDetails<T> | undefined {
     if (!evaluation || evaluation.errorMessage) {
       return {
         value: defaultValue,
@@ -115,7 +119,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
 
     const evaluationError = this.getEvaluationParseError(evaluation, 'boolean', defaultValue);
 
-    if(evaluationError) return evaluationError;
+    if (evaluationError) return evaluationError;
 
     const value = Boolean(evaluation.value);
 
@@ -136,7 +140,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
     const evaluation = evaluations?.toggles?.[flagKey];
 
     const evaluationError = this.getEvaluationParseError(evaluation, 'string', defaultValue);
-    if(evaluationError) return evaluationError;
+    if (evaluationError) return evaluationError;
 
     return {
       value: evaluation.value.toString(),
@@ -155,7 +159,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
     const evaluation = evaluations?.toggles?.[flagKey];
 
     const evaluationError = this.getEvaluationParseError(evaluation, 'number', defaultValue);
-    if(evaluationError) return evaluationError;
+    if (evaluationError) return evaluationError;
 
     return {
       value: Number(evaluation.value),
@@ -174,7 +178,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
     const evaluation = evaluations?.toggles?.[flagKey];
 
     const evaluationError = this.getEvaluationParseError<T>(evaluation, 'object', defaultValue);
-    if(evaluationError) return evaluationError;
+    if (evaluationError) return evaluationError;
 
     return {
       value: JSON.parse(evaluation.value.toString()),
