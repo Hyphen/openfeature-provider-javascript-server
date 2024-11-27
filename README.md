@@ -1,0 +1,80 @@
+# Hyphen Toggle OpenFeature Provider
+
+The **Hyphen Toggle OpenFeature Provider** is an OpenFeature provider implementation for the Hyphen Toggle platform. It enables feature flag evaluation using the OpenFeature standard.
+
+---
+
+## Table of Contents
+
+1. [Getting Started](#getting-started)
+2. [Usage](#usage)
+3. [Configuration](#configuration)
+4. [Contributing](#contributing)
+5. [License](#license)
+
+---
+
+## Getting Started
+
+### Installation
+
+Install the provider and the OpenFeature server SDK:
+
+```bash
+npm install @openfeature/server-sdk hyphen-openfeature-provider
+```
+
+## Usage
+
+### Example: Basic Setup
+
+Below is an example of integrating the Hyphen Toggle provider into your application:
+
+```typescript
+import { OpenFeature } from '@openfeature/server-sdk';
+import { HyphenProvider } from 'hyphen-openfeature-provider';
+import type { HyphenProviderOptions } from 'hyphen-openfeature-provider/types';
+
+const publicKey = "your-public-key-here";
+
+const options: HyphenProviderOptions = {
+application: 'your-application-name',
+environment: 'production',
+};
+
+await OpenFeature.setProviderAndWait(new HyphenProvider(publicKey, options));
+
+const client = OpenFeature.getClient();
+
+const flagDetails = await client.getBooleanDetails('feature-flag-key', false);
+
+console.log(flagDetails.value); // true or false
+```
+
+## Configuration
+
+### Options
+
+| Option          | Type   | Description                                                        |
+|------------------|--------|--------------------------------------------------------------------|
+| `application`    | string | The name of your application.                                     |
+| `environment`    | string | The environment in which your application is running (e.g., `production`, `staging`). |
+
+### Context
+
+Provide an `EvaluationContext` to pass contextual data for feature evaluation. Example:
+
+```typescript
+const context = {
+  targetingKey: 'user-123',
+  ipAddress: '203.0.113.42',
+};
+```
+
+## Contributing
+
+We welcome contributions to this project! If you'd like to contribute, please follow the guidelines outlined in [CONTRIBUTING.md](CONTRIBUTING.md). Whether it's reporting issues, suggesting new features, or submitting pull requests, your help is greatly appreciated!
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for full details.
