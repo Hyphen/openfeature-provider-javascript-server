@@ -21,7 +21,7 @@ The **Hyphen Toggle OpenFeature Provider** is an OpenFeature provider implementa
 Install the provider and the OpenFeature server SDK:
 
 ```bash
-npm install @openfeature/server-sdk hyphen-openfeature-provider
+npm install @openfeature/server-sdk openfeature-provider-javascript-server
 ```
 
 ## Usage
@@ -61,8 +61,6 @@ To evaluate a feature flag with specific user or application context, define and
 const context: HyphenEvaluationContext = {
   targetingKey: 'user-123',
   ipAddress: '203.0.113.42',
-  application: 'your-application-name',
-  environment: 'production',
   customAttributes: {
     subscriptionLevel: 'premium',
     region: 'us-east',
@@ -102,8 +100,6 @@ Provide an `EvaluationContext` to pass contextual data for feature evaluation.
 |---------------------|----------------------|-----------------------------------------------------------------------------|
 | `targetingKey`      | `string`            | The key used for caching the evaluation response.                          |
 | `ipAddress`         | `string`            | The IP address of the user making the request.                             |
-| `application`       | `string`            | The application name or ID for the current evaluation.                     |
-| `environment`       | `string`            | The environment for the Hyphen project (e.g., `production`, `staging`).    |
 | `customAttributes`  | `Record<string, any>` | Custom attributes for additional contextual information.                   |
 | `user`              | `object`            | An object containing user-specific information for the evaluation.         |
 | `user.id`           | `string`            | The unique identifier of the user.                                         |
