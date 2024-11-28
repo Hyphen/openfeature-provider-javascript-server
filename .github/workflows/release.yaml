@@ -17,7 +17,7 @@ env:
 
 jobs:
   lint:
-    name: Linter
+    name: Lint
     runs-on: ubuntu-latest
     outputs:
       cache-hit: ${{ steps.cache-dependencies.outputs.cache-hit }}
@@ -40,7 +40,7 @@ jobs:
             ${{ runner.os }}-node_modules-
       - name: Install dependencies
         run: npm install
-      - name: Run Linter
+      - name: Lint
         run: npm run lint
 
   test:
@@ -59,7 +59,7 @@ jobs:
             ${{ runner.os }}-node_modules-
       - name: Install dependencies
         run: npm install
-      - name: Run Tests
+      - name: Test
         run: npm run test
 
   build:
@@ -90,12 +90,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      - name: install dependencies
-        run: npm install
-      - name: test
-        run: npm test
-      - name: build
-        run: npm run build
       - name: Release to Github Packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
