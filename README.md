@@ -28,12 +28,14 @@ npm install @openfeature/server-sdk hyphen-openfeature-provider
 
 ### Example: Basic Setup
 
-Below is an example of integrating the Hyphen Toggle provider into your application:
+To integrate the Hyphen Toggle provider into your application, follow these steps:
+
+1. **Set up the provider**: Register the `HyphenProvider` with OpenFeature using your `publicKey` and provider options.
+2. **Evaluate a feature toggle**: Use the client to evaluate a feature flag.
 
 ```typescript
 import { OpenFeature } from '@openfeature/server-sdk';
-import { HyphenProvider } from 'hyphen-openfeature-provider';
-import type { HyphenProviderOptions } from 'hyphen-openfeature-provider/types';
+import { HyphenProvider, type HyphenProviderOptions } from 'openfeature-provider-javascript-server';
 
 const publicKey = "your-public-key-here";
 
@@ -51,6 +53,36 @@ const flagDetails = await client.getBooleanDetails('feature-flag-key', false);
 console.log(flagDetails.value); // true or false
 ```
 
+### Example: Contextual Evaluation
+
+To evaluate a feature flag with specific user or application context, define and pass an `EvaluationContext`:
+
+```typescript
+const context: HyphenEvaluationContext = {
+  targetingKey: 'user-123',
+  ipAddress: '203.0.113.42',
+  application: 'your-application-name',
+  environment: 'production',
+  customAttributes: {
+    subscriptionLevel: 'premium',
+    region: 'us-east',
+  },
+  user: {
+    id: 'user-123',
+    email: 'user@example.com',
+    name: 'John Doe',
+    customAttributes: {
+      role: 'admin',
+    },
+  },
+};
+
+// Evaluate the toggle with context
+const flagDetailsWithContext = await client.getBooleanDetails(toggleKey, defaultValue, context);
+
+console.log(flagDetailsWithContext.value); // true or false
+```
+
 ## Configuration
 
 ### Options
@@ -62,14 +94,22 @@ console.log(flagDetails.value); // true or false
 
 ### Context
 
-Provide an `EvaluationContext` to pass contextual data for feature evaluation. Example:
+Provide an `EvaluationContext` to pass contextual data for feature evaluation.
 
-```typescript
-const context = {
-  targetingKey: 'user-123',
-  ipAddress: '203.0.113.42',
-};
-```
+### Context Fields
+
+| Field               | Type                 | Description                                                                 |
+|---------------------|----------------------|-----------------------------------------------------------------------------|
+| `targetingKey`      | `string`            | The key used for caching the evaluation response.                          |
+| `ipAddress`         | `string`            | The IP address of the user making the request.                             |
+| `application`       | `string`            | The application name or ID for the current evaluation.                     |
+| `environment`       | `string`            | The environment for the Hyphen project (e.g., `production`, `staging`).    |
+| `customAttributes`  | `Record<string, any>` | Custom attributes for additional contextual information.                   |
+| `user`              | `object`            | An object containing user-specific information for the evaluation.         |
+| `user.id`           | `string`            | The unique identifier of the user.                                         |
+| `user.email`        | `string`            | The email address of the user.                                             |
+| `user.name`         | `string`            | The name of the user.                                                      |
+| `user.customAttributes` | `Record<string, any>` | Custom attributes specific to the user.                                    |
 
 ## Contributing
 
