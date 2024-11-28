@@ -1,19 +1,7 @@
 import type { EvaluationContext } from '@openfeature/server-sdk';
 
-export type clientContext = {
-  targetingKey: string;
-  ipAddress?: string;
-  customAttributes?: Record<string, any>;
-  user?: {
-    id: string;
-    email?: string;
-    name?: string;
-    customAttributes?: Record<string, any>;
-  };
-} & EvaluationContext;
-
 export type HyphenProviderOptions = {
-  /** The public key for the Hyphen project */
+  /** The application name or application id */
   application: string;
   /** The environment for the Hyphen project */
   environment: string;
@@ -22,11 +10,17 @@ export type HyphenProviderOptions = {
 };
 
 export interface HyphenEvaluationContext extends EvaluationContext {
+  /** The key to use for caching the evaluation response */
   targetingKey: string;
+  /** The IP address of the user */
   ipAddress: string;
+  /** The application name or application id */
   application: string;
+  /** The environment for the Hyphen project */
   environment: string;
+  /** Custom attributes */
   customAttributes: Record<string, any>;
+  /** User object */
   user: {
     id: string;
     email: string;
