@@ -16,8 +16,9 @@ import type { Evaluation, HyphenEvaluationContext, HyphenProviderOptions } from 
 import pkg from '../package.json';
 import { HyphenClient } from './hyphenClient';
 
-export class HyphenProvider extends HyphenClient implements Provider {
+export class HyphenProvider implements Provider {
   private readonly options: HyphenProviderOptions;
+  private readonly hyphenClient: HyphenClient;
   public events: OpenFeatureEventEmitter;
   public runsOn?: Paradigm;
   public hooks: Hook[];
@@ -27,7 +28,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
   };
 
   constructor(publicKey: string, options: HyphenProviderOptions) {
-    super(publicKey, options.horizonServerUrls);
+    this.hyphenClient = new HyphenClient(publicKey, options.horizonServerUrls);
     this.options = options;
     this.runsOn = 'server';
     this.events = new OpenFeatureEventEmitter();
@@ -114,7 +115,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
     context: EvaluationContext,
     // logger: Logger
   ): Promise<ResolutionDetails<boolean>> {
-    const evaluations = await this.evaluate(context as HyphenEvaluationContext);
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles?.[flagKey];
 
     const evaluationError = this.getEvaluationParseError(evaluation, 'boolean', defaultValue);
@@ -136,7 +137,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
     context: EvaluationContext,
     // logger: Logger
   ): Promise<ResolutionDetails<string>> {
-    const evaluations = await this.evaluate(context as HyphenEvaluationContext);
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles?.[flagKey];
 
     const evaluationError = this.getEvaluationParseError(evaluation, 'string', defaultValue);
@@ -155,7 +156,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
     context: EvaluationContext,
     // logger: Logger
   ): Promise<ResolutionDetails<number>> {
-    const evaluations = await this.evaluate(context as HyphenEvaluationContext);
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles?.[flagKey];
 
     const evaluationError = this.getEvaluationParseError(evaluation, 'number', defaultValue);
@@ -174,7 +175,7 @@ export class HyphenProvider extends HyphenClient implements Provider {
     context: EvaluationContext,
     // logger: Logger
   ): Promise<ResolutionDetails<T>> {
-    const evaluations = await this.evaluate(context as HyphenEvaluationContext);
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles?.[flagKey];
 
     const evaluationError = this.getEvaluationParseError<T>(evaluation, 'object', defaultValue);
