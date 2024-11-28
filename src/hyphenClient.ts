@@ -36,6 +36,7 @@ export class HyphenClient {
     context: HyphenEvaluationContext
   ): Promise<EvaluationResponse> {
     let lastError: unknown;
+    let evaluationResponse;
 
     for (const url of serverUrls) {
       try {
@@ -49,7 +50,8 @@ export class HyphenClient {
         });
 
         if (response.ok) {
-          return <EvaluationResponse>await response.json();
+          evaluationResponse = <EvaluationResponse>await response.json();
+          break;
         } else {
           const errorText = await response.text();
           lastError = new Error(errorText);
@@ -60,10 +62,10 @@ export class HyphenClient {
       }
     }
 
-    if (lastError) {
-      throw lastError;
+    if(evaluationResponse) {
+      return evaluationResponse;
     }
 
-    throw new Error('Failed to fetch evaluation response from all servers.');
+    throw lastError;
   }
 }
