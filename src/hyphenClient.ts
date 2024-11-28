@@ -7,12 +7,13 @@ export class HyphenClient {
   private readonly horizonServerUrls: string[];
   private cache: NodeCache;
 
-  constructor(publicKey: string, horizonServerUrls?: string[]) {
+  constructor(publicKey: string, horizonServerUrls: string[] = []) {
     this.publicKey = publicKey;
-    this.horizonServerUrls = this.getServerUrls(horizonServerUrls);
+    horizonServerUrls.push(horizon.url);
+    this.horizonServerUrls = horizonServerUrls;
     this.cache = new NodeCache({
-      stdTTL: cache.ttl,
-      checkperiod: cache.ttl * 2,
+      stdTTL: cache.ttlSeconds,
+      checkperiod: cache.ttlSeconds * 2,
     });
   }
 
@@ -28,13 +29,6 @@ export class HyphenClient {
       this.cache.set(context.targetingKey, evaluationResponse);
     }
     return evaluationResponse;
-  }
-
-  private getServerUrls(horizonServerUrls: string[] = []) {
-    if (!horizonServerUrls.includes(horizon.url)) {
-      horizonServerUrls.push(horizon.url);
-    }
-    return horizonServerUrls;
   }
 
   private async fetchEvaluationResponse(
@@ -59,6 +53,7 @@ export class HyphenClient {
         } else {
           const errorText = await response.text();
           lastError = new Error(errorText);
+          console.debug('Failed to fetch evaluation: ', url, errorText)
         }
       } catch (error) {
         lastError = error;
