@@ -39,7 +39,7 @@ describe('HyphenClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     horizon.url = mockHorizonUrl;
-    cache.ttl = 600;
+    cache.ttlSeconds = 600;
   });
 
   it('should initialize with the correct configurations', () => {
@@ -47,8 +47,8 @@ describe('HyphenClient', () => {
 
     expect(client).toBeDefined();
     expect(NodeCache).toHaveBeenCalledWith({
-      stdTTL: cache.ttl,
-      checkperiod: cache.ttl * 2,
+      stdTTL: cache.ttlSeconds,
+      checkperiod: cache.ttlSeconds * 2,
     });
   });
 
