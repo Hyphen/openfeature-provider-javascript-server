@@ -3,5 +3,5 @@ export const horizon = {
 };
 
 export const cache = {
-  ttl: process.env.CACHE_TTL ? parseInt(process.env.CACHE_TTL) : 30,
+  ttlSeconds: process.env.CACHE_TTL ? parseInt(process.env.CACHE_TTL) : 30,
 }
