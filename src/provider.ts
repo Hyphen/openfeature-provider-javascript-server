@@ -17,7 +17,7 @@ import pkg from '../package.json';
 import { HyphenClient } from './hyphenClient';
 
 export class HyphenProvider implements Provider {
-  private readonly options: HyphenProviderOptions;
+  public readonly options: HyphenProviderOptions;
   private readonly hyphenClient: HyphenClient;
   public events: OpenFeatureEventEmitter;
   public runsOn?: Paradigm;
@@ -28,6 +28,13 @@ export class HyphenProvider implements Provider {
   };
 
   constructor(publicKey: string, options: HyphenProviderOptions) {
+    if(!options.application) {
+      throw new Error('Application is required');
+    }
+    if(!options.environment) {
+      throw new Error('Environment is required');
+    }
+
     this.hyphenClient = new HyphenClient(publicKey, options.horizonServerUrls);
     this.options = options;
     this.runsOn = 'server';
