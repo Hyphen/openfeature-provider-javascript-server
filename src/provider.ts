@@ -4,7 +4,7 @@ import {
   type EvaluationContext,
   type Hook,
   type HookContext,
-  type JsonValue,
+  type JsonValue, type Logger,
   OpenFeatureEventEmitter,
   type Paradigm,
   type Provider,
@@ -120,9 +120,9 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: boolean,
     context: EvaluationContext,
-    // logger: Logger
+    logger: Logger
   ): Promise<ResolutionDetails<boolean>> {
-    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext, logger);
     const evaluation = evaluations?.toggles?.[flagKey];
 
     const evaluationError = this.getEvaluationParseError(evaluation, 'boolean', defaultValue);
@@ -142,7 +142,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: string,
     context: EvaluationContext,
-    // logger: Logger
+    logger: Logger
   ): Promise<ResolutionDetails<string>> {
     const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles?.[flagKey];
@@ -161,7 +161,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: number,
     context: EvaluationContext,
-    // logger: Logger
+    logger: Logger
   ): Promise<ResolutionDetails<number>> {
     const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles?.[flagKey];
@@ -180,7 +180,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: T,
     context: EvaluationContext,
-    // logger: Logger
+    logger: Logger
   ): Promise<ResolutionDetails<T>> {
     const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
     const evaluation = evaluations?.toggles?.[flagKey];

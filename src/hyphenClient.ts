@@ -1,6 +1,7 @@
 import type { EvaluationResponse, HyphenEvaluationContext } from './types';
 import NodeCache from '@cacheable/node-cache';
 import { horizon, cache } from './config';
+import type { Logger } from '@openfeature/server-sdk';
 
 export class HyphenClient {
   private readonly publicKey: string;
@@ -17,13 +18,13 @@ export class HyphenClient {
     });
   }
 
-  async evaluate(context: HyphenEvaluationContext): Promise<EvaluationResponse> {
+  async evaluate(context: HyphenEvaluationContext, logger?: Logger): Promise<EvaluationResponse> {
     const cachedResponse = this.cache.get<EvaluationResponse>(context.targetingKey);
     if (cachedResponse) {
       return cachedResponse;
     }
 
-    const evaluationResponse = await this.fetchEvaluationResponse(this.horizonServerUrls, context);
+    const evaluationResponse = await this.fetchEvaluationResponse(this.horizonServerUrls, context, logger);
 
     if (evaluationResponse) {
       this.cache.set(context.targetingKey, evaluationResponse);
@@ -33,7 +34,8 @@ export class HyphenClient {
 
   private async fetchEvaluationResponse(
     serverUrls: string[],
-    context: HyphenEvaluationContext
+    context: HyphenEvaluationContext,
+    logger?: Logger,
   ): Promise<EvaluationResponse> {
     let lastError: unknown;
     let evaluationResponse;
@@ -55,7 +57,7 @@ export class HyphenClient {
         } else {
           const errorText = await response.text();
           lastError = new Error(errorText);
-          console.debug('Failed to fetch evaluation: ', url, errorText)
+          logger?.debug('Failed to fetch evaluation: ', url, errorText)
         }
       } catch (error) {
         lastError = error;
