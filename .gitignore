@@ -2,6 +2,9 @@
 .idea
 .vscode
 
+# Output
+dist
+
 # Logs
 logs
 *.log
