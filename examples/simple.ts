@@ -10,7 +10,7 @@ const options: HyphenProviderOptions = {
 
 const context: HyphenEvaluationContext = {
   ...options,
-  targetingKey: 'target-key-1',
+  targetingKey: 'user-123',
   ipAddress: '203.0.113.42',
   customAttributes: {
     subscriptionLevel: 'premium',
