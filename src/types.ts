@@ -1,9 +1,9 @@
 import type { EvaluationContext } from '@openfeature/server-sdk';
 
 export type HyphenProviderOptions = {
-  /** The application name or application id */
+  /** The application name or ID for the current evaluation. */
   application: string;
-  /** The environment for the Hyphen project */
+  /** The environment for the Hyphen project (e.g., `production`, `staging`). */
   environment: string;
   /** The Hyphen server URL */
   horizonServerUrls?: string[];
