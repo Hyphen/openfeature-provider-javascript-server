@@ -40,15 +40,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Route to evaluate a feature flag
-app.get('/feature-flag', async (req, res) => {
-  const client = OpenFeature.getClient();
-  const flagDetails = await client.getBooleanDetails('example-feature', false, req.context);
 
-  res.json({
-    featureFlag: 'example-feature',
-    value: flagDetails.value,
-  });
+// Route for a feature toggle that enables or disables a beta API endpoint
+app.get('/api/beta', async (req, res) => {
+  const client = OpenFeature.getClient();
+  const betaFeatureFlag = await client.getBooleanValue('enable-beta-api', false, req.context);
+
+  if (betaFeatureFlag) {
+    // Logic for when the beta API is enabled
+    res.json({
+      message: 'Welcome to the Beta API!',
+      data: { example: 'This is some beta API data.' },
+    });
+  } else {
+    // Logic for when the beta API is disabled
+    res.status(404).json({
+      message: 'The Beta API is not available.',
+    });
+  }
 });
 
 // Start the server
