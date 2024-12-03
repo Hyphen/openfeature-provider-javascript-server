@@ -4,7 +4,7 @@ import {
   type EvaluationContext,
   type Hook,
   type HookContext,
-  type JsonValue,
+  type JsonValue, type Logger,
   OpenFeatureEventEmitter,
   type Paradigm,
   type Provider,
@@ -12,52 +12,13 @@ import {
   StandardResolutionReasons,
 } from '@openfeature/server-sdk';
 
+import type { Evaluation, HyphenEvaluationContext, HyphenProviderOptions } from './types';
 import pkg from '../package.json';
-import NodeCache from '@cacheable/node-cache';
-
-export type clientContext = {
-  targetingKey: string;
-  ipAddress?: string;
-  customAttributes?: Record<string, any>;
-  user?: {
-    id: string;
-    email?: string;
-    name?: string;
-    customAttributes?: Record<string, any>;
-  };
-} & EvaluationContext;
-
-export interface HyphenEvaluationContext extends EvaluationContext {
-  targetingKey: string;
-  ipAddress: string;
-  application: string;
-  environment: string;
-  customAttributes: Record<string, any>;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    customAttributes: Record<string, any>;
-  };
-}
-
-export interface Evaluation {
-  key: string;
-  value: boolean | string | number | Record<string, any>;
-  type: 'boolean' | 'string' | 'number' | 'object';
-  reason: string;
-  errorMessage: string;
-}
-
-export interface EvaluationResponse {
-  toggles: Record<string, Evaluation>;
-}
+import { HyphenClient } from './hyphenClient';
 
 export class HyphenProvider implements Provider {
-  private readonly publicKey: string;
-  private readonly application: string;
-  private readonly environment: string;
-  private cache: NodeCache;
+  public readonly options: HyphenProviderOptions;
+  private readonly hyphenClient: HyphenClient;
   public events: OpenFeatureEventEmitter;
   public runsOn?: Paradigm;
   public hooks: Hook[];
@@ -66,10 +27,16 @@ export class HyphenProvider implements Provider {
     version: pkg.version,
   };
 
-  constructor(publicKey: string, application: string, environment: string) {
-    this.publicKey = publicKey;
-    this.application = application;
-    this.environment = environment;
+  constructor(publicKey: string, options: HyphenProviderOptions) {
+    if(!options.application) {
+      throw new Error('Application is required');
+    }
+    if(!options.environment) {
+      throw new Error('Environment is required');
+    }
+
+    this.hyphenClient = new HyphenClient(publicKey, options.horizonServerUrls);
+    this.options = options;
     this.runsOn = 'server';
     this.events = new OpenFeatureEventEmitter();
     this.hooks = [
@@ -79,11 +46,6 @@ export class HyphenProvider implements Provider {
         finally: this.finallyHook,
       },
     ];
-
-    this.cache = new NodeCache({
-      stdTTL: 30,
-      checkperiod: 60,
-    });
   }
 
   private getTargetingKey(hyphenEvaluationContext: HyphenEvaluationContext): string {
@@ -94,15 +56,15 @@ export class HyphenProvider implements Provider {
       return hyphenEvaluationContext.user.id;
     }
     // TODO: what is a better way to do this? Should we also have a service property so we don't add the random value?
-    return `${this.application}-${this.environment}-${Math.random().toString(36).substring(7)}`;
+    return `${this.options.application}-${this.options.environment}-${Math.random().toString(36).substring(7)}`;
   }
 
   beforeHook = async (
     hookContext: BeforeHookContext,
     // hints: HookHints
   ): Promise<EvaluationContext> => {
-    hookContext.context.application = this.application;
-    hookContext.context.environment = this.environment;
+    hookContext.context.application = this.options.application;
+    hookContext.context.environment = this.options.environment;
     hookContext.context.targetingKey = this.getTargetingKey(hookContext.context as HyphenEvaluationContext);
     this.validateContext(hookContext.context);
     return hookContext.context;
@@ -136,26 +98,36 @@ export class HyphenProvider implements Provider {
     };
   }
 
-  async resolveBooleanEvaluation(
-    flagKey: string,
-    defaultValue: boolean,
-    context: EvaluationContext,
-    // logger: Logger
-  ): Promise<ResolutionDetails<boolean>> {
-    const evaluations = await this.evaluate(context as HyphenEvaluationContext);
-    const evaluation = evaluations?.toggles[flagKey];
-
-    if (evaluation.errorMessage) {
+  private getEvaluationParseError<T>(
+    evaluation: Evaluation,
+    expectedType: Evaluation['type'],
+    defaultValue: T,
+  ): ResolutionDetails<T> | undefined {
+    if (!evaluation || evaluation.errorMessage) {
       return {
         value: defaultValue,
-        errorMessage: evaluation.errorMessage,
+        errorMessage: evaluation?.errorMessage,
         errorCode: ErrorCode.GENERAL,
       };
     }
 
-    if (evaluation?.type !== 'boolean') {
+    if (evaluation?.type !== expectedType) {
       return this.wrongType(defaultValue);
     }
+  }
+
+  async resolveBooleanEvaluation(
+    flagKey: string,
+    defaultValue: boolean,
+    context: EvaluationContext,
+    logger: Logger
+  ): Promise<ResolutionDetails<boolean>> {
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext, logger);
+    const evaluation = evaluations?.toggles?.[flagKey];
+
+    const evaluationError = this.getEvaluationParseError(evaluation, 'boolean', defaultValue);
+
+    if (evaluationError) return evaluationError;
 
     const value = Boolean(evaluation.value);
 
@@ -170,22 +142,13 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: string,
     context: EvaluationContext,
-    // logger: Logger
+    logger: Logger
   ): Promise<ResolutionDetails<string>> {
-    const evaluations = await this.evaluate(context as HyphenEvaluationContext);
-    const evaluation = evaluations?.toggles[flagKey];
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
+    const evaluation = evaluations?.toggles?.[flagKey];
 
-    if (evaluation.errorMessage) {
-      return {
-        value: defaultValue,
-        errorMessage: evaluation.errorMessage,
-        errorCode: ErrorCode.GENERAL,
-      };
-    }
-
-    if (evaluation?.type !== 'string') {
-      return this.wrongType(defaultValue);
-    }
+    const evaluationError = this.getEvaluationParseError(evaluation, 'string', defaultValue);
+    if (evaluationError) return evaluationError;
 
     return {
       value: evaluation.value.toString(),
@@ -198,22 +161,13 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: number,
     context: EvaluationContext,
-    // logger: Logger
+    logger: Logger
   ): Promise<ResolutionDetails<number>> {
-    const evaluations = await this.evaluate(context as HyphenEvaluationContext);
-    const evaluation = evaluations?.toggles[flagKey];
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
+    const evaluation = evaluations?.toggles?.[flagKey];
 
-    if (evaluation.errorMessage) {
-      return {
-        value: defaultValue,
-        errorMessage: evaluation.errorMessage,
-        errorCode: ErrorCode.GENERAL,
-      };
-    }
-
-    if (evaluation?.type !== 'number') {
-      return this.wrongType(defaultValue);
-    }
+    const evaluationError = this.getEvaluationParseError(evaluation, 'number', defaultValue);
+    if (evaluationError) return evaluationError;
 
     return {
       value: Number(evaluation.value),
@@ -226,55 +180,19 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: T,
     context: EvaluationContext,
-    // logger: Logger
+    logger: Logger
   ): Promise<ResolutionDetails<T>> {
-    const evaluations = await this.evaluate(context as HyphenEvaluationContext);
-    const evaluation = evaluations?.toggles[flagKey];
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
+    const evaluation = evaluations?.toggles?.[flagKey];
 
-    if (evaluation.errorMessage) {
-      return {
-        value: defaultValue,
-        errorMessage: evaluation.errorMessage,
-        errorCode: ErrorCode.GENERAL,
-      };
-    }
-
-    if (evaluation?.type !== 'object') {
-      return this.wrongType(defaultValue);
-    }
+    const evaluationError = this.getEvaluationParseError<T>(evaluation, 'object', defaultValue);
+    if (evaluationError) return evaluationError;
 
     return {
       value: JSON.parse(evaluation.value.toString()),
       variant: evaluation.value.toString(),
       reason: evaluation.reason,
     };
-  }
-
-  private async evaluate(context: HyphenEvaluationContext) {
-    const cacheResult = this.cache.get(context.targetingKey);
-    if (cacheResult) {
-      return cacheResult as EvaluationResponse;
-    }
-
-    // TODO: This should be refactored to a Client Class. This should also
-    // Have logic use an array of URLS falling back to the next one if the first one fails.
-    // This will be used later to support customer deploying there own edge nodes.
-    const response = await fetch('https://dev-horizon.hyphen.ai/toggle/evaluate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': `${this.publicKey}`,
-      },
-      body: JSON.stringify(context),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as EvaluationResponse;
-    this.cache.set(context.targetingKey, data);
-    return data;
   }
 
   private validateContext(context: EvaluationContext): HyphenEvaluationContext {

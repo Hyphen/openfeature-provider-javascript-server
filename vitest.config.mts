@@ -6,7 +6,9 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'istanbul',
-      reporter: ['text', 'json', 'html']
-    }
-  }
+      reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.ts'],
+    },
+    include: ['tests/**/*.ts'],
+  },
 });
