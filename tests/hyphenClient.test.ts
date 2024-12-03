@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { HyphenClient } from '../src/HyphenClient';
+import { HyphenClient } from '../src/hyphenClient';
 import NodeCache from '@cacheable/node-cache';
 import { horizon, cache } from '../src/config';
-import type { HyphenEvaluationContext } from '../src/types';
+import type { HyphenEvaluationContext } from '../src';
 
 vi.mock('@cacheable/node-cache');
 vi.stubGlobal('fetch', vi.fn());
