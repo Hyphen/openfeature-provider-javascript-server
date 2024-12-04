@@ -4,12 +4,12 @@ import {
   type HyphenEvaluationContext,
   HyphenProvider,
   type HyphenProviderOptions,
-} from 'openfeature-provider-javascript-server';
+} from '@hyphen/openfeature-server-provider';
 
 const app = express();
 const port = 3000;
 
-const publicKey = "your-public-key";
+const publicKey = 'your-public-key';
 
 const options: HyphenProviderOptions = {
   application: 'application-id',
@@ -39,7 +39,6 @@ app.use((req, res, next) => {
   } as HyphenEvaluationContext;
   next();
 });
-
 
 // Route for a feature toggle that enables or disables a beta API endpoint
 app.get('/api/beta', async (req, res) => {

@@ -1,5 +1,5 @@
 {
-  "name": "openfeature-provider-javascript-server",
+  "name": "@hyphen/openfeature-server-provider",
   "version": "0.1.0",
   "description": "The official Hyphen Toggle OpenFeature Provider",
   "main": "./dist/src/index.js",
@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint .",
-    "test": "vitest --coverage"
+    "test": "vitest --coverage --run"
   },
   "repository": {
     "type": "git",
@@ -35,6 +35,11 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.15.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.1",
     "@types/eslint-config-prettier": "^6.11.3",
     "@typescript-eslint/eslint-plugin": "^8.16.0",
     "@typescript-eslint/parser": "^8.16.0",
@@ -43,8 +48,36 @@
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.3.3",
     "ts-loader": "^9.5.1",
+    "semantic-release": "^24.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.5"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/changelog",
+        {
+          "changelogFile": "CHANGELOG.md"
+        }
+      ],
+      "@semantic-release/npm",
+      "@semantic-release/github",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md",
+            "package.json*"
+          ],
+          "message": "chore(release): set `package.json` to ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ]
+    ]
   }
 }
