@@ -8,7 +8,6 @@
     "dist"
   ],
   "scripts": {
-    "build:types": "tsc --project tsconfig.types.json",
     "build": "tsc",
     "lint": "eslint .",
     "test": "vitest --coverage"
