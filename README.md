@@ -21,7 +21,7 @@ The **Hyphen Toggle OpenFeature Provider** is an OpenFeature provider implementa
 Install the provider and the OpenFeature server SDK:
 
 ```bash
-npm install @openfeature/server-sdk openfeature-provider-javascript-server
+npm install @openfeature/server-sdk @hyphen/openfeature-server-provider
 ```
 
 ## Usage
@@ -35,7 +35,7 @@ To integrate the Hyphen Toggle provider into your application, follow these step
 
 ```typescript
 import { OpenFeature } from '@openfeature/server-sdk';
-import { HyphenProvider, type HyphenProviderOptions } from 'openfeature-provider-javascript-server';
+import { HyphenProvider, type HyphenProviderOptions } from '@hyphen/openfeature-server-provider';
 
 const publicKey = "your-public-key-here";
 

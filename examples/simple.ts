@@ -1,12 +1,16 @@
 import { OpenFeature } from '@openfeature/server-sdk';
-import  { HyphenProvider, type HyphenProviderOptions, type HyphenEvaluationContext } from 'openfeature-provider-javascript-server';
+import {
+  HyphenProvider,
+  type HyphenProviderOptions,
+  type HyphenEvaluationContext,
+} from '@hyphen/openfeature-server-provider';
 
-const publicKey = "your-public-key";
+const publicKey = 'your-public-key';
 
 const options: HyphenProviderOptions = {
   application: 'application-id',
   environment: 'production',
-}
+};
 
 const context: HyphenEvaluationContext = {
   ...options,

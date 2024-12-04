@@ -1,5 +1,5 @@
 {
-  "name": "openfeature-provider-javascript-server",
+  "name": "@hyphen/openfeature-server-provider",
   "version": "0.1.0",
   "description": "The official Hyphen Toggle OpenFeature Provider",
   "main": "./dist/index.cjs.js",
