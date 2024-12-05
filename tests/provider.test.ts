@@ -134,14 +134,8 @@ describe('HyphenProvider', () => {
       };
 
       const mockEvaluate = vi.spyOn(HyphenClient.prototype, 'evaluate').mockResolvedValue(mockEvaluationResponse);
-      const result = await provider.resolveBooleanEvaluation('flag-key', false, mockContext);
-
+      await expect(provider.resolveBooleanEvaluation('flag-key', false, mockContext)).rejects.toThrow('Evaluation failed');
       expect(mockEvaluate).toHaveBeenCalled();
-      expect(result).toEqual({
-        value: false,
-        errorMessage: 'Evaluation failed',
-        errorCode: 'GENERAL',
-      });
     });
   });
 
