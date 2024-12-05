@@ -12,7 +12,7 @@ import {
   StandardResolutionReasons,
 } from '@openfeature/server-sdk';
 
-import type { Evaluation, HyphenEvaluationContext, HyphenProviderOptions } from './types';
+import { Evaluation, HyphenEvaluationContext, HyphenProviderOptions } from './types';
 import pkg from '../package.json';
 import { HyphenClient } from './hyphenClient';
 
