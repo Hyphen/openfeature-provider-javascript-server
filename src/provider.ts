@@ -104,11 +104,7 @@ export class HyphenProvider implements Provider {
     defaultValue: T,
   ): ResolutionDetails<T> | undefined {
     if (!evaluation || evaluation.errorMessage) {
-      return {
-        value: defaultValue,
-        errorMessage: evaluation?.errorMessage,
-        errorCode: ErrorCode.GENERAL,
-      };
+      throw new Error(evaluation?.errorMessage ?? 'Evaluation does not exist');
     }
 
     if (evaluation?.type !== expectedType) {
