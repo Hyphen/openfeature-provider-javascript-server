@@ -14,10 +14,6 @@ export interface HyphenEvaluationContext extends EvaluationContext {
   targetingKey: string;
   /** The IP address of the user making the request. */
   ipAddress: string;
-  /** The application name or ID for the current evaluation. */
-  application: string;
-  /** The environment for the Hyphen project (e.g., `production`, `staging`). */
-  environment: string;
   /** Custom attributes for additional contextual information. */
   customAttributes: Record<string, any>;
   /** An object containing user-specific information for the evaluation. */
