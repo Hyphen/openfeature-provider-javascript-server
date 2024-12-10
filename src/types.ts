@@ -7,7 +7,16 @@ export type HyphenProviderOptions = {
   environment: string;
   /** The Hyphen server URL */
   horizonServerUrls?: string[];
+  /** The cache options for the provider */
+  cache?: {
+    /** The time-to-live (TTL) in seconds for the cache. */
+    ttlSeconds?: number;
+    /** Generate a cache key function for the evaluation context. */
+    generateCacheKey: GenerateCacheKeyFn;
+  }
 };
+
+export type GenerateCacheKeyFn = (context: HyphenEvaluationContext) => string;
 
 export interface HyphenEvaluationContext extends EvaluationContext {
   /** The key used for caching the evaluation response. */
