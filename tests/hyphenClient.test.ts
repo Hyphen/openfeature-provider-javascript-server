@@ -3,6 +3,7 @@ import { HyphenClient } from '../src/hyphenClient';
 import { horizon } from '../src/config';
 import type { HyphenEvaluationContext, HyphenProviderOptions } from '../src/types';
 import { CacheClient } from '../src/cacheClient';
+import hash from 'object-hash';
 
 vi.mock('../src/cacheClient');
 vi.stubGlobal('fetch', vi.fn());
@@ -74,7 +75,7 @@ describe('HyphenClient', () => {
     const client = new HyphenClient(publicKey, options);
     const result = await client.evaluate(mockContext);
 
-    expect(mockCacheClient.get).toHaveBeenCalledWith(mockContext.targetingKey);
+    expect(mockCacheClient.get).toHaveBeenCalledWith(mockContext);
     expect(result).toEqual(mockResponse);
   });
 
@@ -89,7 +90,7 @@ describe('HyphenClient', () => {
     const client = new HyphenClient(publicKey, options);
     const result = await client.evaluate(mockContext);
 
-    expect(mockCacheClient.get).toHaveBeenCalledWith(mockContext.targetingKey);
+    expect(mockCacheClient.get).toHaveBeenCalledWith(mockContext);
     expect(fetch).toHaveBeenCalledWith(mockHorizonUrl, {
       method: 'POST',
       headers: {
@@ -98,7 +99,7 @@ describe('HyphenClient', () => {
       },
       body: JSON.stringify(mockContext),
     });
-    expect(mockCacheClient.set).toHaveBeenCalledWith(mockContext.targetingKey, mockResponse);
+    expect(mockCacheClient.set).toHaveBeenCalledWith(mockContext, mockResponse);
     expect(result).toEqual(mockResponse);
   });
 
