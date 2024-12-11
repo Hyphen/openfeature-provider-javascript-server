@@ -1,6 +1,7 @@
 import NodeCache from '@cacheable/node-cache';
 import { GenerateCacheKeyFn, HyphenEvaluationContext, HyphenProviderOptions } from './types';
 import { cache } from './config';
+import hash from 'object-hash';
 
 export class CacheClient {
   private readonly cache: NodeCache;
@@ -18,7 +19,7 @@ export class CacheClient {
   }
 
   private defaultGenerateCacheKey(context: HyphenEvaluationContext): string {
-    return JSON.stringify(context);
+    return hash(context);
   }
 
   generateCacheKey(context: HyphenEvaluationContext): string {
