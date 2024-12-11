@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { HyphenClient } from '../src/hyphenClient';
-import NodeCache from '@cacheable/node-cache';
-import { horizon, cache } from '../src/config';
-import type { HyphenEvaluationContext } from '../src';
+import { horizon } from '../src/config';
+import type { HyphenEvaluationContext, HyphenProviderOptions } from '../src/types';
+import { CacheClient } from '../src/cacheClient';
 
-vi.mock('@cacheable/node-cache');
+vi.mock('../src/cacheClient');
 vi.stubGlobal('fetch', vi.fn());
 
 describe('HyphenClient', () => {
@@ -36,49 +36,60 @@ describe('HyphenClient', () => {
   };
   const mockError = new Error('Failed to fetch');
 
+  let options: HyphenProviderOptions;
+  let mockCacheClient: {
+    get: Mock;
+    set: Mock;
+    generateCacheKey: Mock;
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     horizon.url = mockHorizonUrl;
-    cache.ttlSeconds = 600;
+    options = {
+      horizonServerUrls: [],
+      application: 'test-app',
+      environment: 'test-env',
+      cache: { ttlSeconds: 600 },
+    };
+
+    mockCacheClient = {
+      get: vi.fn(),
+      set: vi.fn(),
+      generateCacheKey: vi.fn((ctx: HyphenEvaluationContext) => ctx.targetingKey),
+    };
+
+    vi.mocked(CacheClient).mockImplementation(() => mockCacheClient as any);
   });
 
   it('should initialize with the correct configurations', () => {
-    const client = new HyphenClient(publicKey);
-
+    const client = new HyphenClient(publicKey, options);
     expect(client).toBeDefined();
-    expect(NodeCache).toHaveBeenCalledWith({
-      stdTTL: cache.ttlSeconds,
-      checkperiod: cache.ttlSeconds * 2,
-    });
+    expect(CacheClient).toHaveBeenCalledWith(options.cache);
   });
 
   it('should return cached response if available', async () => {
-    const mockCache = new NodeCache();
-    vi.mocked(NodeCache).mockReturnValue(mockCache);
-    mockCache.get = vi.fn().mockReturnValue(mockResponse);
+    mockCacheClient.get.mockReturnValue(mockResponse);
 
-    const client = new HyphenClient(publicKey);
+    const client = new HyphenClient(publicKey, options);
     const result = await client.evaluate(mockContext);
 
-    expect(mockCache.get).toHaveBeenCalledWith(mockContext.targetingKey);
+    expect(mockCacheClient.get).toHaveBeenCalledWith(mockContext.targetingKey);
     expect(result).toEqual(mockResponse);
   });
 
   it('should fetch and cache the response if not cached', async () => {
-    const mockCache = new NodeCache();
-    vi.mocked(NodeCache).mockReturnValue(mockCache);
-    mockCache.get = vi.fn().mockReturnValue(null);
-    mockCache.set = vi.fn();
+    mockCacheClient.get.mockReturnValue(null);
 
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValue(mockResponse),
     } as unknown as Response);
 
-    const client = new HyphenClient(publicKey);
+    const client = new HyphenClient(publicKey, options);
     const result = await client.evaluate(mockContext);
 
-    expect(mockCache.get).toHaveBeenCalledWith(mockContext.targetingKey);
+    expect(mockCacheClient.get).toHaveBeenCalledWith(mockContext.targetingKey);
     expect(fetch).toHaveBeenCalledWith(mockHorizonUrl, {
       method: 'POST',
       headers: {
@@ -87,29 +98,25 @@ describe('HyphenClient', () => {
       },
       body: JSON.stringify(mockContext),
     });
-    expect(mockCache.set).toHaveBeenCalledWith(mockContext.targetingKey, mockResponse);
+    expect(mockCacheClient.set).toHaveBeenCalledWith(mockContext.targetingKey, mockResponse);
     expect(result).toEqual(mockResponse);
   });
 
   it('should throw an error if all server requests fail', async () => {
-    const mockCache = new NodeCache();
-    vi.mocked(NodeCache).mockReturnValue(mockCache);
-    mockCache.get = vi.fn().mockReturnValue(null);
-
+    mockCacheClient.get.mockReturnValue(null);
     vi.mocked(fetch).mockRejectedValue(mockError);
 
-    const client = new HyphenClient(publicKey);
-
+    const client = new HyphenClient(publicKey, options);
     await expect(client.evaluate(mockContext)).rejects.toThrowError(mockError);
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it('should use multiple server URLs in case of failure', async () => {
-    const mockCache = new NodeCache();
-    vi.mocked(NodeCache).mockReturnValue(mockCache);
-    mockCache.get = vi.fn().mockReturnValue(null);
+    mockCacheClient.get.mockReturnValue(null);
 
     const alternateUrl = 'https://alternate-url.com';
+    options.horizonServerUrls = [alternateUrl];
+
     vi.mocked(fetch)
       .mockRejectedValueOnce(mockError) // First URL fails
       .mockResolvedValueOnce({
@@ -117,7 +124,7 @@ describe('HyphenClient', () => {
         json: vi.fn().mockResolvedValue(mockResponse),
       } as unknown as Response); // Second URL succeeds
 
-    const client = new HyphenClient(publicKey, [alternateUrl]);
+    const client = new HyphenClient(publicKey, options);
     const result = await client.evaluate(mockContext);
 
     expect(fetch).toHaveBeenCalledTimes(2);
@@ -127,16 +134,12 @@ describe('HyphenClient', () => {
   });
 
   it('should add horizon URL if not present in the server URLs', () => {
-    const customUrl = 'https://custom-url.com';
-    const client = new HyphenClient(publicKey, [customUrl]);
-
-    expect(client['horizonServerUrls']).toEqual([customUrl, mockHorizonUrl]);
+    const client = new HyphenClient(publicKey, options);
+    expect(client['horizonServerUrls']).toEqual([mockHorizonUrl]);
   });
 
   it('should handle non-successful responses and set the lastError', async () => {
-    const mockCache = new NodeCache();
-    vi.mocked(NodeCache).mockReturnValue(mockCache);
-    mockCache.get = vi.fn().mockReturnValue(null);
+    mockCacheClient.get.mockReturnValue(null);
 
     const errorText = 'Error: Unauthorized';
     vi.mocked(fetch).mockResolvedValueOnce({
@@ -144,8 +147,7 @@ describe('HyphenClient', () => {
       text: vi.fn().mockResolvedValue(errorText),
     } as unknown as Response);
 
-    const client = new HyphenClient(publicKey);
-
+    const client = new HyphenClient(publicKey, options);
     await expect(client.evaluate(mockContext)).rejects.toThrowError(errorText);
 
     expect(fetch).toHaveBeenCalledWith(mockHorizonUrl, expect.any(Object));
