@@ -9,23 +9,32 @@ export type HyphenProviderOptions = {
   horizonServerUrls?: string[];
 };
 
-export interface HyphenEvaluationContext extends EvaluationContext {
+type WithUndefined<T> = {
+  [P in keyof T]: T[P] extends object
+    ? WithUndefined<T[P]> | undefined
+    : T[P] | undefined;
+};
+
+type OptionalContextProperties = WithUndefined<EvaluationContext>;
+
+
+export interface HyphenEvaluationContext extends OptionalContextProperties {
   /** The key used for caching the evaluation response. */
   targetingKey: string;
   /** The IP address of the user making the request. */
-  ipAddress: string;
+  ipAddress?: string;
   /** Custom attributes for additional contextual information. */
-  customAttributes: Record<string, any>;
+  customAttributes?: Record<string, any>;
   /** An object containing user-specific information for the evaluation. */
-  user: {
+  user?: {
     /** The unique identifier of the user. */
-    id: string;
+    id?: string;
     /** The email address of the user. */
-    email: string;
+    email?: string;
     /** The name of the user. */
-    name: string;
+    name?: string;
     /** Custom attributes specific to the user. */
-    customAttributes: Record<string, any>;
+    customAttributes?: Record<string, any>;
   };
 }
 
