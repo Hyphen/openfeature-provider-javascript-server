@@ -22,15 +22,17 @@ export class CacheClient {
     return hash(context);
   }
 
-  generateCacheKey(context: HyphenEvaluationContext): string {
+  private generateCacheKey(context: HyphenEvaluationContext): string {
     return this.generateCacheKeyFn(context);
   }
 
-  get<T>(key: string): T | undefined {
+  get<T>(context: HyphenEvaluationContext): T | undefined {
+    const key = this.generateCacheKey(context);
     return this.cache.get<T>(key);
   }
 
-  set<T>(key: string, value: T) {
+  set<T>(context: HyphenEvaluationContext, value: T) {
+    const key = this.generateCacheKey(context);
     this.cache.set(key, value);
   }
 }

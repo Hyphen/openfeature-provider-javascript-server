@@ -19,8 +19,7 @@ export class HyphenClient {
   }
 
   async evaluate(context: HyphenEvaluationContext, logger?: Logger): Promise<EvaluationResponse> {
-    const cacheKey = this.cache.generateCacheKey(context);
-    const cachedResponse = this.cache.get<EvaluationResponse>(cacheKey);
+    const cachedResponse = this.cache.get<EvaluationResponse>(context);
     if (cachedResponse) {
       return cachedResponse;
     }
@@ -28,7 +27,7 @@ export class HyphenClient {
     const evaluationResponse = await this.fetchEvaluationResponse(this.horizonServerUrls, context, logger);
 
     if (evaluationResponse) {
-      this.cache.set(cacheKey, evaluationResponse);
+      this.cache.set(context, evaluationResponse);
     }
     return evaluationResponse;
   }
