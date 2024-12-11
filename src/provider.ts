@@ -35,7 +35,7 @@ export class HyphenProvider implements Provider {
       throw new Error('Environment is required');
     }
 
-    this.hyphenClient = new HyphenClient(publicKey, options.horizonServerUrls);
+    this.hyphenClient = new HyphenClient(publicKey, options);
     this.options = options;
     this.runsOn = 'server';
     this.events = new OpenFeatureEventEmitter();
