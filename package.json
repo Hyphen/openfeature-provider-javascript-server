@@ -30,6 +30,9 @@
   "homepage": "https://github.com/Hyphen/openfeature-provider-javascript-server#readme",
   "dependencies": {
     "@cacheable/node-cache": "^1.5.0",
+    "object-hash": "^3.0.0"
+  },
+  "peerDependencies": {
     "@openfeature/server-sdk": "^1.16.2"
   },
   "devDependencies": {
@@ -41,14 +44,15 @@
     "@semantic-release/github": "^11.0.1",
     "@semantic-release/release-notes-generator": "^14.0.1",
     "@types/eslint-config-prettier": "^6.11.3",
+    "@types/object-hash": "^3.0.6",
     "@typescript-eslint/eslint-plugin": "^8.16.0",
     "@typescript-eslint/parser": "^8.16.0",
     "@vitest/coverage-istanbul": "^2.1.5",
     "eslint": "^9.15.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.3.3",
-    "ts-loader": "^9.5.1",
     "semantic-release": "^24.2.0",
+    "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.5"
