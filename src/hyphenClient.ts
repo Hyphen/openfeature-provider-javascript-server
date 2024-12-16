@@ -1,25 +1,21 @@
-import type { EvaluationResponse, HyphenEvaluationContext, TelemetryPayload } from './types';
-import NodeCache from '@cacheable/node-cache';
-import { horizon, cache, horizonEndpoints } from './config';
+import type { EvaluationResponse, HyphenEvaluationContext, HyphenProviderOptions, TelemetryPayload } from './types';
+import { horizon, horizonEndpoints } from './config';
 import type { Logger } from '@openfeature/server-sdk';
+import { CacheClient } from './cacheClient';
 
 export class HyphenClient {
   private readonly publicKey: string;
   private readonly horizonServerUrls: string[];
-  private cache: NodeCache;
+  private cache: CacheClient;
 
-  constructor(publicKey: string, horizonServerUrls: string[] = []) {
+  constructor(publicKey: string, options: HyphenProviderOptions) {
     this.publicKey = publicKey;
-    horizonServerUrls.push(horizon.url);
-    this.horizonServerUrls = horizonServerUrls;
-    this.cache = new NodeCache({
-      stdTTL: cache.ttlSeconds,
-      checkperiod: cache.ttlSeconds * 2,
-    });
+    this.horizonServerUrls = [...options.horizonServerUrls || [], horizon.url];
+    this.cache = new CacheClient(options.cache);
   }
 
   async evaluate(context: HyphenEvaluationContext, logger?: Logger): Promise<EvaluationResponse> {
-    const cachedResponse = this.cache.get<EvaluationResponse>(context.targetingKey);
+    const cachedResponse = this.cache.get<EvaluationResponse>(context);
     if (cachedResponse) {
       return cachedResponse;
     }
@@ -27,7 +23,7 @@ export class HyphenClient {
     const evaluationResponse = await this.fetchEvaluationResponse(this.horizonServerUrls, context, logger);
 
     if (evaluationResponse) {
-      this.cache.set(context.targetingKey, evaluationResponse);
+      this.cache.set(context, evaluationResponse);
     }
     return evaluationResponse;
   }
