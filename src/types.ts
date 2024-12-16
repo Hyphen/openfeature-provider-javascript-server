@@ -1,4 +1,5 @@
 import type { EvaluationContext } from '@openfeature/server-sdk';
+import { ResolutionReason } from '@openfeature/core';
 
 export type HyphenProviderOptions = {
   /** The application name or ID for the current evaluation. */
@@ -16,7 +17,6 @@ type WithUndefined<T> = {
 };
 
 type OptionalContextProperties = WithUndefined<EvaluationContext>;
-
 
 export interface HyphenEvaluationContext extends OptionalContextProperties {
   /** The key used for caching the evaluation response. */
@@ -42,10 +42,17 @@ export interface Evaluation {
   key: string;
   value: boolean | string | number | Record<string, any>;
   type: 'boolean' | 'string' | 'number' | 'object';
-  reason: string;
-  errorMessage: string;
+  reason?: ResolutionReason;
+  errorMessage?: string;
 }
 
 export interface EvaluationResponse {
   toggles: Record<string, Evaluation>;
+}
+
+export interface TelemetryPayload {
+  context: HyphenEvaluationContext;
+  data: {
+    toggle: Evaluation;
+  };
 }

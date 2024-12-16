@@ -1,6 +1,6 @@
-import type { EvaluationResponse, HyphenEvaluationContext } from './types';
+import type { EvaluationResponse, HyphenEvaluationContext, TelemetryPayload } from './types';
 import NodeCache from '@cacheable/node-cache';
-import { horizon, cache } from './config';
+import { horizon, cache, horizonEndpoints } from './config';
 import type { Logger } from '@openfeature/server-sdk';
 
 export class HyphenClient {
@@ -38,36 +38,47 @@ export class HyphenClient {
     logger?: Logger,
   ): Promise<EvaluationResponse> {
     let lastError: unknown;
-    let evaluationResponse;
 
     for (const url of serverUrls) {
       try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': this.publicKey,
-          },
-          body: JSON.stringify(context),
-        });
-
-        if (response.ok) {
-          evaluationResponse = <EvaluationResponse>await response.json();
-          break;
-        } else {
-          const errorText = await response.text();
-          lastError = new Error(errorText);
-          logger?.debug('Failed to fetch evaluation: ', url, errorText)
-        }
+        const response = await this.httpPost(url, context);
+        return await response.json();
       } catch (error) {
         lastError = error;
+        logger?.debug('Failed to fetch evaluation: ', url, error);
       }
     }
+    throw lastError;
+  }
 
-    if(evaluationResponse) {
-      return evaluationResponse;
+  private async httpPost(url: string, payload: unknown) {
+    let lastError: unknown;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.publicKey,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        return response;
+      } else {
+        const errorText = await response.text();
+        lastError = new Error(errorText);
+        console.debug('Failed to fetch', url, errorText);
+      }
+    } catch (error) {
+      lastError = error;
     }
 
     throw lastError;
   }
+
+  async postTelemetry(payload: TelemetryPayload) {
+    await this.httpPost(horizonEndpoints.telemetry, payload);
+  }
+
 }
