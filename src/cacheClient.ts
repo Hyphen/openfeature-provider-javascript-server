@@ -15,7 +15,7 @@ export class CacheClient {
       checkperiod: ttlSeconds * 2,
     });
 
-    this.generateCacheKeyFn = cacheConfig?.generateCacheKey ?? this.defaultGenerateCacheKey;
+    this.generateCacheKeyFn = cacheConfig?.generateCacheKeyFn ?? this.defaultGenerateCacheKey;
   }
 
   private defaultGenerateCacheKey(context: HyphenEvaluationContext): string {
