@@ -40,6 +40,13 @@ describe('HyphenProvider', () => {
     provider = new HyphenProvider(publicKey, options);
   });
 
+  describe('constructor', () => {
+    it('should throw an error if application or environment is missing', () => {
+      expect(() => new HyphenProvider(publicKey, { ...options, application: '' })).toThrowError('Application is required');
+      expect(() => new HyphenProvider(publicKey, { ...options, environment: '' })).toThrowError('Environment is required');
+    })
+  })
+
   describe('getTargetingKey', () => {
     it('should return targetingKey if present', () => {
       const key = provider['getTargetingKey']({ targetingKey: 'test-key' } as any);
@@ -53,10 +60,11 @@ describe('HyphenProvider', () => {
       expect(key).toBe('user-id');
     });
 
-    // it('should generate a random key if neither targetingKey nor user ID is present', () => {
-    //   const key = provider['getTargetingKey']({} as any);
-    //   expect(key).toMatch(new RegExp(`^${options.application}-${options.environment}-[a-z0-9]+$`));
-    // });
+    it('should return a random key if neither targetingKey nor user ID is present', () => {
+      const key = provider['getTargetingKey']({} as any);
+      const isValidKey = new RegExp(`^${options.application}-${options.environment}-[a-z0-9]+$`);
+      expect(isValidKey.test(key)).toBe(true);
+    });
   });
 
   describe('Hooks', () => {

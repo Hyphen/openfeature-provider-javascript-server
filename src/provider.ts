@@ -130,7 +130,7 @@ export class HyphenProvider implements Provider {
       throw new Error(evaluation?.errorMessage ?? 'Evaluation does not exist');
     }
 
-    if (evaluation?.type !== expectedType) {
+    if (evaluation.type !== expectedType) {
       return this.wrongType(defaultValue);
     }
   }
