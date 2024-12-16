@@ -39,14 +39,19 @@ export class HyphenProvider implements Provider {
     this.options = options;
     this.runsOn = 'server';
     this.events = new OpenFeatureEventEmitter();
-    this.hooks = [
-      {
-        before: this.beforeHook,
-        error: this.errorHook,
-        finally: this.finallyHook,
-        after: this.afterHook,
-      },
-    ];
+
+    const hook: Hook = {
+      before: this.beforeHook,
+      error: this.errorHook,
+      finally: this.finallyHook,
+      after: this.afterHook,
+    };
+
+    if(options.enableToggleUsage === false) {
+      delete hook.after
+    }
+
+    this.hooks = [hook];
   }
 
   private getTargetingKey(hyphenEvaluationContext: HyphenEvaluationContext): string {
