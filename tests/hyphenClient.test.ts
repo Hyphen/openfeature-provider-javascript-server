@@ -1,11 +1,22 @@
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { HyphenClient } from '../src/hyphenClient';
-import { horizon } from '../src/config';
 import type { HyphenEvaluationContext, HyphenProviderOptions } from '../src/types';
 import { CacheClient } from '../src/cacheClient';
-import hash from 'object-hash';
 
 vi.mock('../src/cacheClient');
+vi.mock('../src/config', () => {
+  const mockUrl = 'https://mock-horizon-url.com';
+  return {
+    horizon: { url: mockUrl },
+    horizonEndpoints: {
+      evaluate: `${mockUrl}/evaluate`,
+      telemetry: `${mockUrl}/telemetry`
+    },
+    cache: {
+      ttlSeconds: 30
+    }
+  };
+});
 vi.stubGlobal('fetch', vi.fn());
 
 describe('HyphenClient', () => {
@@ -46,7 +57,6 @@ describe('HyphenClient', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    horizon.url = mockHorizonUrl;
     options = {
       horizonServerUrls: [],
       application: 'test-app',
