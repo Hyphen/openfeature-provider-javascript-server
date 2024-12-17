@@ -111,7 +111,6 @@ export class HyphenProvider implements Provider {
       };
 
       await this.hyphenClient.postTelemetry(payload);
-      hookContext.logger.info('Payload sent to postTelemetry:', JSON.stringify(payload));
     } catch (error) {
       hookContext.logger.error('Unable to log usage.', error);
       throw error;
