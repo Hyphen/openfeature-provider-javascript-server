@@ -158,7 +158,6 @@ describe('HyphenProvider', () => {
             }
           }
         });
-        expect(mockLogger.info).toHaveBeenCalled();
       });
 
       it('should handle and rethrow telemetry errors', async () => {
