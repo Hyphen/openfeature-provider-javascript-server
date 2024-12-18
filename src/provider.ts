@@ -139,21 +139,30 @@ export class HyphenProvider implements Provider {
     }
   }
 
+  private async getEvaluation<T>(
+    flagKey: string,
+    context: EvaluationContext,
+    expectedType: Evaluation['type'],
+    defaultValue: T,
+    logger?: Logger
+  ): Promise<{ evaluation: Evaluation; error?: ResolutionDetails<T> }> {
+    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext, logger);
+    const evaluation = evaluations?.toggles?.[flagKey];
+    const error = this.getEvaluationParseError(evaluation, expectedType, defaultValue);
+
+    return { evaluation, error };
+  }
+
   async resolveBooleanEvaluation(
     flagKey: string,
     defaultValue: boolean,
     context: EvaluationContext,
     logger?: Logger
   ): Promise<ResolutionDetails<boolean>> {
-    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext, logger);
-    const evaluation = evaluations?.toggles?.[flagKey];
-
-    const evaluationError = this.getEvaluationParseError(evaluation, 'boolean', defaultValue);
-
-    if (evaluationError) return evaluationError;
+    const { evaluation, error } = await this.getEvaluation(flagKey, context, 'boolean', defaultValue, logger);
+    if (error) return error;
 
     const value = Boolean(evaluation.value);
-
     return {
       value,
       variant: evaluation.value?.toString(),
@@ -167,11 +176,8 @@ export class HyphenProvider implements Provider {
     context: EvaluationContext,
     logger?: Logger
   ): Promise<ResolutionDetails<string>> {
-    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
-    const evaluation = evaluations?.toggles?.[flagKey];
-
-    const evaluationError = this.getEvaluationParseError(evaluation, 'string', defaultValue);
-    if (evaluationError) return evaluationError;
+    const { evaluation, error } = await this.getEvaluation(flagKey, context, 'string', defaultValue, logger);
+    if (error) return error;
 
     return {
       value: evaluation.value?.toString(),
@@ -186,11 +192,8 @@ export class HyphenProvider implements Provider {
     context: EvaluationContext,
     logger?: Logger
   ): Promise<ResolutionDetails<number>> {
-    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
-    const evaluation = evaluations?.toggles?.[flagKey];
-
-    const evaluationError = this.getEvaluationParseError(evaluation, 'number', defaultValue);
-    if (evaluationError) return evaluationError;
+    const { evaluation, error } = await this.getEvaluation(flagKey, context, 'number', defaultValue, logger);
+    if (error) return error;
 
     return {
       value: Number(evaluation.value),
@@ -205,11 +208,8 @@ export class HyphenProvider implements Provider {
     context: EvaluationContext,
     logger?: Logger
   ): Promise<ResolutionDetails<T>> {
-    const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext);
-    const evaluation = evaluations?.toggles?.[flagKey];
-
-    const evaluationError = this.getEvaluationParseError<T>(evaluation, 'object', defaultValue);
-    if (evaluationError) return evaluationError;
+    const { evaluation, error } = await this.getEvaluation(flagKey, context, 'object', defaultValue, logger);
+    if (error) return error;
 
     return {
       value: JSON.parse(evaluation.value.toString()),
