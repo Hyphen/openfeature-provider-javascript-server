@@ -10,7 +10,7 @@ export class HyphenClient {
 
   constructor(publicKey: string, options: HyphenProviderOptions) {
     this.publicKey = publicKey;
-    this.horizonServerUrls = [...options.horizonServerUrls || [], horizon.url];
+    this.horizonServerUrls = [...options.horizonServerUrls || [], horizonEndpoints.evaluate];
     this.cache = new CacheClient(options.cache);
   }
 
