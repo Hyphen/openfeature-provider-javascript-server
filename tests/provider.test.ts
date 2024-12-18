@@ -4,7 +4,16 @@ import type { HookContext } from '@openfeature/server-sdk';
 import { HyphenClient } from '../src/hyphenClient';
 import type { Evaluation, EvaluationResponse } from '../src/types';
 
-vi.mock('./hyphenClient');
+vi.mock('../src/config', () => ({
+  horizon: { url: 'https://mock-horizon-url.com' },
+  horizonEndpoints: {
+    evaluate: 'https://mock-horizon-url.com/evaluate',
+    telemetry: 'https://mock-horizon-url.com/telemetry'
+  },
+  cache: {
+    ttlSeconds: 30
+  }
+}));
 
 const createMockEvaluation = (
   key: string,
@@ -40,6 +49,13 @@ describe('HyphenProvider', () => {
     provider = new HyphenProvider(publicKey, options);
   });
 
+  describe('constructor', () => {
+    it('should throw an error if application or environment is missing', () => {
+      expect(() => new HyphenProvider(publicKey, { ...options, application: '' })).toThrowError('Application is required');
+      expect(() => new HyphenProvider(publicKey, { ...options, environment: '' })).toThrowError('Environment is required');
+    });
+  })
+
   describe('getTargetingKey', () => {
     it('should return targetingKey if present', () => {
       const key = provider['getTargetingKey']({ targetingKey: 'test-key' } as any);
@@ -53,56 +69,120 @@ describe('HyphenProvider', () => {
       expect(key).toBe('user-id');
     });
 
-    // it('should generate a random key if neither targetingKey nor user ID is present', () => {
-    //   const key = provider['getTargetingKey']({} as any);
-    //   expect(key).toMatch(new RegExp(`^${options.application}-${options.environment}-[a-z0-9]+$`));
-    // });
+    it('should return a random key if neither targetingKey nor user ID is present', () => {
+      const key = provider['getTargetingKey']({} as any);
+      const isValidKey = new RegExp(`^${options.application}-${options.environment}-[a-z0-9]+$`);
+      expect(isValidKey.test(key)).toBe(true);
+    });
   });
 
   describe('Hooks', () => {
-    it('should execute beforeHook and modify the context', async () => {
-      const mockContext: any = {
-        context: {
-          targetingKey: 'test-key',
-          application: 'test-app',
-          environment: 'test-env',
-        },
-      };
-
-      const result = await provider.beforeHook(mockContext);
-
-      expect(result.application).toBe(options.application);
-      expect(result.environment).toBe(options.environment);
-      expect(result.targetingKey).toBeDefined();
+    describe('beforeHook', () => {
+      it('should execute beforeHook and modify the context', async () => {
+        const mockContext: any = {
+          context: {
+            targetingKey: 'test-key',
+            application: 'test-app',
+            environment: 'test-env',
+          },
+        };
+  
+        const result = await provider.beforeHook(mockContext);
+  
+        expect(result.application).toBe(options.application);
+        expect(result.environment).toBe(options.environment);
+        expect(result.targetingKey).toBeDefined();
+      });
     });
 
-    it('should log errors in errorHook', async () => {
-      const mockLogger = { error: vi.fn() };
-      const hookContext: HookContext = { logger: mockLogger } as any;
+    describe('afterHook', () => {
+      it('should log errors in errorHook', async () => {
+        const mockLogger = { error: vi.fn() };
+        const hookContext: HookContext = { logger: mockLogger } as any;
+  
+        await provider.errorHook(hookContext, new Error('Test error'));
+  
+        expect(mockLogger.error).toHaveBeenCalledWith('Error', 'Test error');
+      });
 
-      await provider.errorHook(hookContext, new Error('Test error'));
-
-      expect(mockLogger.error).toHaveBeenCalledWith('Error', 'Test error');
+      it('should log the error as-is if it is not an instance of Error', async () => {
+        const mockLogger = { error: vi.fn() };
+        const hookContext: HookContext = { logger: mockLogger } as any;
+  
+        const nonErrorValue = 'string error';
+  
+        await provider.errorHook(hookContext, nonErrorValue);
+  
+        expect(mockLogger.error).toHaveBeenCalledWith('Error', nonErrorValue);
+      });
     });
 
-    it('should log the error as-is if it is not an instance of Error', async () => {
-      const mockLogger = { error: vi.fn() };
-      const hookContext: HookContext = { logger: mockLogger } as any;
-
-      const nonErrorValue = 'string error';
-
-      await provider.errorHook(hookContext, nonErrorValue);
-
-      expect(mockLogger.error).toHaveBeenCalledWith('Error', nonErrorValue);
+    describe('finallyHook', () => {
+      it('should log usage in finallyHook', async () => {
+        const mockLogger = { info: vi.fn() };
+        const hookContext: HookContext = { logger: mockLogger } as any;
+  
+        await provider.finallyHook(hookContext);
+  
+        expect(mockLogger.info).toHaveBeenCalledWith('logging usage');
+      });
     });
 
-    it('should log usage in finallyHook', async () => {
-      const mockLogger = { info: vi.fn() };
-      const hookContext: HookContext = { logger: mockLogger } as any;
+    describe('afterHook', () => {
+      it('should post telemetry data successfully', async () => {
+        const mockLogger = { info: vi.fn(), error: vi.fn() };
+        const mockEvaluationDetails = {
+          flagKey: 'test-flag',
+          value: true,
+          reason: 'EVALUATED'
+        };
+        const hookContext = {
+          logger: mockLogger,
+          flagValueType: 'boolean',
+          context: mockContext
+        };
 
-      await provider.finallyHook(hookContext);
+        const mockPostTelemetry = vi.spyOn(HyphenClient.prototype, 'postTelemetry')
+          .mockResolvedValue(undefined);
 
-      expect(mockLogger.info).toHaveBeenCalledWith('logging usage');
+        await provider.afterHook(hookContext as any, mockEvaluationDetails as any);
+
+        expect(mockPostTelemetry).toHaveBeenCalledWith({
+          context: mockContext,
+          data: {
+            toggle: {
+              key: 'test-flag',
+              value: true,
+              type: 'boolean',
+              reason: 'EVALUATED'
+            }
+          }
+        });
+      });
+
+      it('should handle and rethrow telemetry errors', async () => {
+        const mockLogger = { info: vi.fn(), error: vi.fn() };
+        const mockEvaluationDetails = {
+          flagKey: 'test-flag',
+          value: true,
+          reason: 'EVALUATED'
+        };
+        const hookContext = {
+          logger: mockLogger,
+          flagValueType: 'boolean',
+          context: mockContext
+        };
+
+        const telemetryError = new Error('Failed to post telemetry');
+        const mockPostTelemetry = vi.spyOn(HyphenClient.prototype, 'postTelemetry')
+          .mockRejectedValue(telemetryError);
+
+        await expect(provider.afterHook(hookContext as any, mockEvaluationDetails as any))
+          .rejects.toThrow(telemetryError);
+
+        expect(mockPostTelemetry).toHaveBeenCalled();
+        expect(mockLogger.error).toHaveBeenCalledWith('Unable to log usage.', telemetryError);
+      });
     });
   });
 

@@ -1,7 +1,7 @@
 import {
   type BeforeHookContext,
   ErrorCode,
-  type EvaluationContext,
+  type EvaluationContext, EvaluationDetails, FlagValue,
   type Hook,
   type HookContext,
   type JsonValue, type Logger,
@@ -12,7 +12,7 @@ import {
   StandardResolutionReasons,
 } from '@openfeature/server-sdk';
 
-import { Evaluation, HyphenEvaluationContext, HyphenProviderOptions } from './types';
+import { Evaluation, HyphenEvaluationContext, HyphenProviderOptions, TelemetryPayload } from './types';
 import pkg from '../package.json';
 import { HyphenClient } from './hyphenClient';
 
@@ -39,13 +39,19 @@ export class HyphenProvider implements Provider {
     this.options = options;
     this.runsOn = 'server';
     this.events = new OpenFeatureEventEmitter();
-    this.hooks = [
-      {
-        before: this.beforeHook,
-        error: this.errorHook,
-        finally: this.finallyHook,
-      },
-    ];
+
+    const hook: Hook = {
+      before: this.beforeHook,
+      error: this.errorHook,
+      finally: this.finallyHook,
+      after: this.afterHook,
+    };
+
+    if(options.enableToggleUsage === false) {
+      delete hook.after
+    }
+
+    this.hooks = [hook];
   }
 
   private getTargetingKey(hyphenEvaluationContext: HyphenEvaluationContext): string {
@@ -90,6 +96,27 @@ export class HyphenProvider implements Provider {
     hookContext.logger.info('logging usage');
   };
 
+  afterHook = async (hookContext: HookContext, evaluationDetails: EvaluationDetails<FlagValue>): Promise<void> => {
+    const parsedEvaluationDetails = {
+      key: evaluationDetails.flagKey,
+      value: evaluationDetails.value,
+      type: hookContext.flagValueType,
+      reason: evaluationDetails.reason,
+    };
+
+    try {
+      const payload: TelemetryPayload = {
+        context: hookContext.context as HyphenEvaluationContext,
+        data: { toggle: parsedEvaluationDetails as Evaluation},
+      };
+
+      await this.hyphenClient.postTelemetry(payload);
+    } catch (error) {
+      hookContext.logger.error('Unable to log usage.', error);
+      throw error;
+    }
+  };
+
   wrongType<T>(value: T): ResolutionDetails<T> {
     return {
       value,
@@ -107,7 +134,7 @@ export class HyphenProvider implements Provider {
       throw new Error(evaluation?.errorMessage ?? 'Evaluation does not exist');
     }
 
-    if (evaluation?.type !== expectedType) {
+    if (evaluation.type !== expectedType) {
       return this.wrongType(defaultValue);
     }
   }
@@ -129,7 +156,7 @@ export class HyphenProvider implements Provider {
 
     return {
       value,
-      variant: evaluation.value.toString(),
+      variant: evaluation.value?.toString(),
       reason: evaluation.reason,
     };
   }
@@ -147,8 +174,8 @@ export class HyphenProvider implements Provider {
     if (evaluationError) return evaluationError;
 
     return {
-      value: evaluation.value.toString(),
-      variant: evaluation.value.toString(),
+      value: evaluation.value?.toString(),
+      variant: evaluation.value?.toString(),
       reason: evaluation.reason,
     };
   }

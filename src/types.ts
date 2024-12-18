@@ -1,4 +1,5 @@
 import type { EvaluationContext } from '@openfeature/server-sdk';
+import { ResolutionReason } from '@openfeature/core';
 
 export type HyphenProviderOptions = {
   /** The application name or ID for the current evaluation. */
@@ -7,6 +8,8 @@ export type HyphenProviderOptions = {
   environment: string;
   /** The Hyphen server URL */
   horizonServerUrls?: string[];
+  /** Flag to enable toggle usage */
+  enableToggleUsage?: boolean;
   /** The cache options for the provider */
   cache?: {
     /** The time-to-live (TTL) in seconds for the cache. */
@@ -50,10 +53,17 @@ export interface Evaluation {
   key: string;
   value: boolean | string | number | Record<string, any>;
   type: 'boolean' | 'string' | 'number' | 'object';
-  reason: string;
-  errorMessage: string;
+  reason?: ResolutionReason;
+  errorMessage?: string;
 }
 
 export interface EvaluationResponse {
   toggles: Record<string, Evaluation>;
+}
+
+export interface TelemetryPayload {
+  context: HyphenEvaluationContext;
+  data: {
+    toggle: Evaluation;
+  };
 }
