@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.0...v1.0.1) (2024-12-19)
+
+
+### Bug Fixes
+
+* **config:** update horizon URL to a static endpoint ([#16](https://github.com/Hyphen/openfeature-provider-javascript-server/issues/16)) ([df2e512](https://github.com/Hyphen/openfeature-provider-javascript-server/commit/df2e5122acd7a90ce2e224c00ccebebb04c6f905))
+
 # 1.0.0 (2024-12-19)
 
 
