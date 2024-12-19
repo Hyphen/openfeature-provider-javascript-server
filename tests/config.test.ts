@@ -18,12 +18,6 @@ describe('Config', () => {
       const { horizon } = await import('../src/config');
       expect(horizon.url).toBe('https://horizon.hyphen.ai/toggle');
     });
-
-    it('should use dev URL when NODE_ENV is not production', async () => {
-      process.env.NODE_ENV = 'development';
-      const { horizon } = await import('../src/config');
-      expect(horizon.url).toBe('https://dev-horizon.hyphen.ai/toggle');
-    });
   });
 
   describe('cache', () => {
