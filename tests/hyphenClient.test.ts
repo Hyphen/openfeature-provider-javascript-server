@@ -5,12 +5,12 @@ import { CacheClient } from '../src/cacheClient';
 
 vi.mock('../src/cacheClient');
 vi.mock('../src/config', () => {
-  const mockUrl = 'https://mock-horizon-url.com';
+  const mockBaseUrl = 'https://mock-horizon-url.com';
   return {
-    horizon: { url: mockUrl },
+    horizon: { url: mockBaseUrl },
     horizonEndpoints: {
-      evaluate: `${mockUrl}/evaluate`,
-      telemetry: `${mockUrl}/telemetry`
+      evaluate: `${mockBaseUrl}/evaluate`,
+      telemetry: `${mockBaseUrl}/telemetry`
     },
     cache: {
       ttlSeconds: 30
@@ -21,7 +21,9 @@ vi.stubGlobal('fetch', vi.fn());
 
 describe('HyphenClient', () => {
   const publicKey = 'test-public-key';
-  const mockHorizonUrl = 'https://mock-horizon-url.com';
+  const mockBaseUrl = 'https://mock-horizon-url.com';
+  const mockEvaluateUrl = `${mockBaseUrl}/evaluate`;
+  const mockTelemetryUrl = `${mockBaseUrl}/telemetry`;
   const mockContext: HyphenEvaluationContext = {
     targetingKey: 'test-key',
     ipAddress: '127.0.0.1',
@@ -101,7 +103,7 @@ describe('HyphenClient', () => {
     const result = await client.evaluate(mockContext);
 
     expect(mockCacheClient.get).toHaveBeenCalledWith(mockContext);
-    expect(fetch).toHaveBeenCalledWith(mockHorizonUrl, {
+    expect(fetch).toHaveBeenCalledWith(mockEvaluateUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -125,7 +127,7 @@ describe('HyphenClient', () => {
   it('should use multiple server URLs in case of failure', async () => {
     mockCacheClient.get.mockReturnValue(null);
 
-    const alternateUrl = 'https://alternate-url.com';
+    const alternateUrl = 'https://alternate-url.com/evaluate';
     options.horizonServerUrls = [alternateUrl];
 
     vi.mocked(fetch)
@@ -140,13 +142,13 @@ describe('HyphenClient', () => {
 
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(fetch).toHaveBeenCalledWith(alternateUrl, expect.any(Object));
-    expect(fetch).toHaveBeenCalledWith(mockHorizonUrl, expect.any(Object));
+    expect(fetch).toHaveBeenCalledWith(mockEvaluateUrl, expect.any(Object));
     expect(result).toEqual(mockResponse);
   });
 
   it('should add horizon URL if not present in the server URLs', () => {
     const client = new HyphenClient(publicKey, options);
-    expect(client['horizonServerUrls']).toEqual([mockHorizonUrl]);
+    expect(client['horizonServerUrls']).toEqual([mockEvaluateUrl]);
   });
 
   it('should handle non-successful responses and set the lastError', async () => {
@@ -161,6 +163,6 @@ describe('HyphenClient', () => {
     const client = new HyphenClient(publicKey, options);
     await expect(client.evaluate(mockContext)).rejects.toThrowError(errorText);
 
-    expect(fetch).toHaveBeenCalledWith(mockHorizonUrl, expect.any(Object));
+    expect(fetch).toHaveBeenCalledWith(mockEvaluateUrl, expect.any(Object));
   });
 });
