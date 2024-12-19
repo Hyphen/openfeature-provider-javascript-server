@@ -85,10 +85,36 @@ console.log(flagDetailsWithContext.value); // true or false
 
 ### Options
 
-| Option          | Type   | Description                                                                           |
-|------------------|--------|---------------------------------------------------------------------------------------|
-| `application`    | string | The application id or alteernate id.                                                  |
-| `environment`    | string | The environment in which your application is running (e.g., `production`, `staging`). |
+| Option              | Type    | Description                                                                           |
+|---------------------|---------|---------------------------------------------------------------------------------------|
+| `application`       | string  | The application id or alternate id.                                                   |
+| `environment`       | string  | The environment in which your application is running (e.g., `production`, `staging`). |
+| `enableToggleUsage` | boolean | Enable or disable the logging of toggle usage (telemetry).                           |
+| `cache`             | object  | Configuration for caching feature flag evaluations.                                   |
+
+### Cache Configuration
+
+The `cache` option accepts the following properties:
+
+| Property              | Type       | Default | Description                                                    |
+|----------------------|------------|---------|----------------------------------------------------------------|
+| `ttlSeconds`         | number     | 300     | Time-to-live in seconds for cached flag evaluations.           |
+| `generateCacheKeyFn` | Function   | -       | Custom function to generate cache keys from evaluation context. |
+
+Example with cache configuration:
+
+```typescript
+const options: HyphenProviderOptions = {
+  application: 'your-application-name',
+  environment: 'production',
+  cache: {
+    ttlSeconds: 600, // 10 minutes
+    generateCacheKeyFn: (context: HyphenEvaluationContext) => {
+      return `${context.targetingKey}-${context.user?.id}`;
+    },
+  },
+};
+```
 
 ### Context
 
