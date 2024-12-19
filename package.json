@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:Hyphen/openfeature-provider-javascript-server.git"
+    "url": "git+https://github.com/Hyphen/openfeature-provider-javascript-server.git"
   },
   "keywords": [
     "toggle",
