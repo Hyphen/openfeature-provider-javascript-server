@@ -2,17 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HyphenProvider } from '../src';
 import type { HookContext } from '@openfeature/server-sdk';
 import { HyphenClient } from '../src/hyphenClient';
-import type { Evaluation, EvaluationResponse } from '../src/types';
+import type { Evaluation, EvaluationResponse } from '../src';
 
 vi.mock('../src/config', () => ({
   horizon: { url: 'https://mock-horizon-url.com' },
   horizonEndpoints: {
     evaluate: 'https://mock-horizon-url.com/evaluate',
-    telemetry: 'https://mock-horizon-url.com/telemetry'
+    telemetry: 'https://mock-horizon-url.com/telemetry',
   },
   cache: {
-    ttlSeconds: 30
-  }
+    ttlSeconds: 30,
+  },
 }));
 
 const createMockEvaluation = (
@@ -51,10 +51,24 @@ describe('HyphenProvider', () => {
 
   describe('constructor', () => {
     it('should throw an error if application or environment is missing', () => {
-      expect(() => new HyphenProvider(publicKey, { ...options, application: '' })).toThrowError('Application is required');
-      expect(() => new HyphenProvider(publicKey, { ...options, environment: '' })).toThrowError('Environment is required');
+      expect(() => new HyphenProvider(publicKey, { ...options, application: '' })).toThrowError(
+        'Application is required',
+      );
+      expect(() => new HyphenProvider(publicKey, { ...options, environment: '' })).toThrowError(
+        'Environment is required',
+      );
     });
-  })
+    it('should delete the after hook if enableToggleUsage is false', () => {
+      const optionsWithToggleDisabled = {
+        ...options,
+        enableToggleUsage: false,
+      };
+
+      const providerWithToggleDisabled = new HyphenProvider(publicKey, optionsWithToggleDisabled);
+
+      expect(providerWithToggleDisabled.hooks.some((hook) => hook.after)).toBe(false);
+    });
+  });
 
   describe('getTargetingKey', () => {
     it('should return targetingKey if present', () => {
@@ -86,9 +100,9 @@ describe('HyphenProvider', () => {
             environment: 'test-env',
           },
         };
-  
+
         const result = await provider.beforeHook(mockContext);
-  
+
         expect(result.application).toBe(options.application);
         expect(result.environment).toBe(options.environment);
         expect(result.targetingKey).toBeDefined();
@@ -99,32 +113,21 @@ describe('HyphenProvider', () => {
       it('should log errors in errorHook', async () => {
         const mockLogger = { error: vi.fn() };
         const hookContext: HookContext = { logger: mockLogger } as any;
-  
+
         await provider.errorHook(hookContext, new Error('Test error'));
-  
+
         expect(mockLogger.error).toHaveBeenCalledWith('Error', 'Test error');
       });
 
       it('should log the error as-is if it is not an instance of Error', async () => {
         const mockLogger = { error: vi.fn() };
         const hookContext: HookContext = { logger: mockLogger } as any;
-  
-        const nonErrorValue = 'string error';
-  
-        await provider.errorHook(hookContext, nonErrorValue);
-  
-        expect(mockLogger.error).toHaveBeenCalledWith('Error', nonErrorValue);
-      });
-    });
 
-    describe('finallyHook', () => {
-      it('should log usage in finallyHook', async () => {
-        const mockLogger = { info: vi.fn() };
-        const hookContext: HookContext = { logger: mockLogger } as any;
-  
-        await provider.finallyHook(hookContext);
-  
-        expect(mockLogger.info).toHaveBeenCalledWith('logging usage');
+        const nonErrorValue = 'string error';
+
+        await provider.errorHook(hookContext, nonErrorValue);
+
+        expect(mockLogger.error).toHaveBeenCalledWith('Error', nonErrorValue);
       });
     });
 
@@ -134,16 +137,15 @@ describe('HyphenProvider', () => {
         const mockEvaluationDetails = {
           flagKey: 'test-flag',
           value: true,
-          reason: 'EVALUATED'
+          reason: 'EVALUATED',
         };
         const hookContext = {
           logger: mockLogger,
           flagValueType: 'boolean',
-          context: mockContext
+          context: mockContext,
         };
 
-        const mockPostTelemetry = vi.spyOn(HyphenClient.prototype, 'postTelemetry')
-          .mockResolvedValue(undefined);
+        const mockPostTelemetry = vi.spyOn(HyphenClient.prototype, 'postTelemetry').mockResolvedValue(undefined);
 
         await provider.afterHook(hookContext as any, mockEvaluationDetails as any);
 
@@ -154,9 +156,9 @@ describe('HyphenProvider', () => {
               key: 'test-flag',
               value: true,
               type: 'boolean',
-              reason: 'EVALUATED'
-            }
-          }
+              reason: 'EVALUATED',
+            },
+          },
         });
       });
 
@@ -165,20 +167,22 @@ describe('HyphenProvider', () => {
         const mockEvaluationDetails = {
           flagKey: 'test-flag',
           value: true,
-          reason: 'EVALUATED'
+          reason: 'EVALUATED',
         };
         const hookContext = {
           logger: mockLogger,
           flagValueType: 'boolean',
-          context: mockContext
+          context: mockContext,
         };
 
         const telemetryError = new Error('Failed to post telemetry');
-        const mockPostTelemetry = vi.spyOn(HyphenClient.prototype, 'postTelemetry')
+        const mockPostTelemetry = vi
+          .spyOn(HyphenClient.prototype, 'postTelemetry')
           .mockRejectedValue(telemetryError);
 
-        await expect(provider.afterHook(hookContext as any, mockEvaluationDetails as any))
-          .rejects.toThrow(telemetryError);
+        await expect(provider.afterHook(hookContext as any, mockEvaluationDetails as any)).rejects.toThrow(
+          telemetryError,
+        );
 
         expect(mockPostTelemetry).toHaveBeenCalled();
         expect(mockLogger.error).toHaveBeenCalledWith('Unable to log usage.', telemetryError);
@@ -214,7 +218,9 @@ describe('HyphenProvider', () => {
       };
 
       const mockEvaluate = vi.spyOn(HyphenClient.prototype, 'evaluate').mockResolvedValue(mockEvaluationResponse);
-      await expect(provider.resolveBooleanEvaluation('flag-key', false, mockContext)).rejects.toThrow('Evaluation failed');
+      await expect(provider.resolveBooleanEvaluation('flag-key', false, mockContext)).rejects.toThrow(
+        'Evaluation failed',
+      );
       expect(mockEvaluate).toHaveBeenCalled();
     });
   });

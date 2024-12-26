@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { HyphenClient } from '../src/hyphenClient';
-import type { HyphenEvaluationContext, HyphenProviderOptions } from '../src/types';
+import type { HyphenEvaluationContext, HyphenProviderOptions, TelemetryPayload } from '../src';
 import { CacheClient } from '../src/cacheClient';
 
 vi.mock('../src/cacheClient');
@@ -10,11 +10,11 @@ vi.mock('../src/config', () => {
     horizon: { url: mockBaseUrl },
     horizonEndpoints: {
       evaluate: `${mockBaseUrl}/evaluate`,
-      telemetry: `${mockBaseUrl}/telemetry`
+      telemetry: `${mockBaseUrl}/telemetry`,
     },
     cache: {
-      ttlSeconds: 30
-    }
+      ttlSeconds: 30,
+    },
   };
 });
 vi.stubGlobal('fetch', vi.fn());
@@ -127,7 +127,7 @@ describe('HyphenClient', () => {
   it('should use multiple server URLs in case of failure', async () => {
     mockCacheClient.get.mockReturnValue(null);
 
-    const alternateUrl = 'https://alternate-url.com/evaluate';
+    const alternateUrl = 'https://alternate-url.com';
     options.horizonServerUrls = [alternateUrl];
 
     vi.mocked(fetch)
@@ -141,14 +141,14 @@ describe('HyphenClient', () => {
     const result = await client.evaluate(mockContext);
 
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(fetch).toHaveBeenCalledWith(alternateUrl, expect.any(Object));
+    expect(fetch).toHaveBeenCalledWith(`${alternateUrl}/evaluate`, expect.any(Object));
     expect(fetch).toHaveBeenCalledWith(mockEvaluateUrl, expect.any(Object));
     expect(result).toEqual(mockResponse);
   });
 
   it('should add horizon URL if not present in the server URLs', () => {
     const client = new HyphenClient(publicKey, options);
-    expect(client['horizonServerUrls']).toEqual([mockEvaluateUrl]);
+    expect(client['horizonServerUrls']).toEqual([mockBaseUrl]);
   });
 
   it('should handle non-successful responses and set the lastError', async () => {
@@ -164,5 +164,29 @@ describe('HyphenClient', () => {
     await expect(client.evaluate(mockContext)).rejects.toThrowError(errorText);
 
     expect(fetch).toHaveBeenCalledWith(mockEvaluateUrl, expect.any(Object));
+  });
+
+  it('should successfully send telemetry data', async () => {
+    const client = new HyphenClient(publicKey, options);
+    const payload: TelemetryPayload = {
+      context: mockContext,
+      data: { toggle: { key: 'test-flag', value: true, type: 'boolean', reason: 'mock-reason' } },
+    };
+
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn(),
+    } as unknown as Response);
+
+    await client.postTelemetry(payload);
+
+    expect(fetch).toHaveBeenCalledWith('https://mock-horizon-url.com/telemetry', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': publicKey,
+      },
+      body: JSON.stringify(payload),
+    });
   });
 });

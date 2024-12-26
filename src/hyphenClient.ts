@@ -10,7 +10,7 @@ export class HyphenClient {
 
   constructor(publicKey: string, options: HyphenProviderOptions) {
     this.publicKey = publicKey;
-    this.horizonServerUrls = [...options.horizonServerUrls || [], horizonEndpoints.evaluate];
+    this.horizonServerUrls = [...options.horizonServerUrls || [], horizon.url];
     this.cache = new CacheClient(options.cache);
   }
 
@@ -37,7 +37,7 @@ export class HyphenClient {
 
     for (const url of serverUrls) {
       try {
-        const response = await this.httpPost(url, context);
+        const response = await this.httpPost(`${url}/evaluate`, context);
         return await response.json();
       } catch (error) {
         lastError = error;
