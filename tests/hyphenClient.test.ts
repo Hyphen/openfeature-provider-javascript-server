@@ -9,8 +9,8 @@ vi.mock('../src/config', () => {
   return {
     horizon: { url: mockBaseUrl },
     horizonEndpoints: {
-      evaluate: `${mockBaseUrl}/evaluate`,
-      telemetry: `${mockBaseUrl}/telemetry`,
+      evaluate: `${mockBaseUrl}/toggle/evaluate`,
+      telemetry: `${mockBaseUrl}/toggle/telemetry`,
     },
     cache: {
       ttlSeconds: 30,
@@ -22,8 +22,8 @@ vi.stubGlobal('fetch', vi.fn());
 describe('HyphenClient', () => {
   const publicKey = 'test-public-key';
   const mockBaseUrl = 'https://mock-horizon-url.com';
-  const mockEvaluateUrl = `${mockBaseUrl}/evaluate`;
-  const mockTelemetryUrl = `${mockBaseUrl}/telemetry`;
+  const mockEvaluateUrl = `${mockBaseUrl}/toggle/evaluate`;
+  const mockTelemetryUrl = `${mockBaseUrl}/toggle/telemetry`;
   const mockContext: HyphenEvaluationContext = {
     targetingKey: 'test-key',
     ipAddress: '127.0.0.1',
@@ -141,7 +141,7 @@ describe('HyphenClient', () => {
     const result = await client.evaluate(mockContext);
 
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(fetch).toHaveBeenCalledWith(`${alternateUrl}/evaluate`, expect.any(Object));
+    expect(fetch).toHaveBeenCalledWith(`${alternateUrl}/toggle/evaluate`, expect.any(Object));
     expect(fetch).toHaveBeenCalledWith(mockEvaluateUrl, expect.any(Object));
     expect(result).toEqual(mockResponse);
   });
@@ -180,7 +180,7 @@ describe('HyphenClient', () => {
 
     await client.postTelemetry(payload);
 
-    expect(fetch).toHaveBeenCalledWith('https://mock-horizon-url.com/telemetry', {
+    expect(fetch).toHaveBeenCalledWith('https://mock-horizon-url.com/toggle/telemetry', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
