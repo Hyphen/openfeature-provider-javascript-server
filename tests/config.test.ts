@@ -16,7 +16,7 @@ describe('Config', () => {
     it('should use production URL when NODE_ENV is production', async () => {
       process.env.NODE_ENV = 'production';
       const { horizon } = await import('../src/config');
-      expect(horizon.url).toBe('https://horizon.hyphen.ai/toggle');
+      expect(horizon.url).toBe('https://horizon.hyphen.ai');
     });
   });
 
@@ -33,4 +33,4 @@ describe('Config', () => {
       expect(cache.ttlSeconds).toBe(60);
     });
   });
-}); 
+});

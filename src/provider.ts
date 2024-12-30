@@ -43,7 +43,6 @@ export class HyphenProvider implements Provider {
     const hook: Hook = {
       before: this.beforeHook,
       error: this.errorHook,
-      finally: this.finallyHook,
       after: this.afterHook,
     };
 
@@ -86,14 +85,6 @@ export class HyphenProvider implements Provider {
     } else {
       hookContext.logger.error('Error', error);
     }
-  };
-
-  finallyHook = async (
-    hookContext: HookContext,
-    // hints: HookHints
-  ): Promise<void> => {
-    // This is a good place to log client usage. This will be post MVP
-    hookContext.logger.info('logging usage');
   };
 
   afterHook = async (hookContext: HookContext, evaluationDetails: EvaluationDetails<FlagValue>): Promise<void> => {
