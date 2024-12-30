@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.1...v1.0.2) (2024-12-30)
+
+
+### Bug Fixes
+
+* use domain without toggle prefix in config ([#17](https://github.com/Hyphen/openfeature-provider-javascript-server/issues/17)) ([93ae985](https://github.com/Hyphen/openfeature-provider-javascript-server/commit/93ae985ff2a63325060688d6bb5806d7ddba9746))
+
 ## [1.0.1](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.0...v1.0.1) (2024-12-19)
 
 
