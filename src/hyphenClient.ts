@@ -17,14 +17,18 @@ export class HyphenClient {
   private async tryUrls(urlPath: string, payload: unknown, logger?: Logger): Promise<Response> {
     let lastError: unknown;
 
-    for (const baseUrl of this.horizonServerUrls) {
+    for (let url of this.horizonServerUrls) {
       try {
-        const url = `${baseUrl}${urlPath}`;
+        const baseUrl = new URL(url);
+        baseUrl.pathname = baseUrl.pathname.replace(/\/$/, '');
+        baseUrl.pathname += urlPath;
+
+        url = baseUrl.toString();
         const response = await this.httpPost(url, payload);
         return response;
       } catch (error) {
         lastError = error;
-        logger?.debug('Failed to fetch: ', baseUrl, error);
+        logger?.debug('Failed to fetch: ', url, error);
       }
     }
     throw lastError;
