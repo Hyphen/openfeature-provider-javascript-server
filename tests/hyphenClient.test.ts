@@ -5,13 +5,9 @@ import { CacheClient } from '../src/cacheClient';
 
 vi.mock('../src/cacheClient');
 vi.mock('../src/config', () => {
-  const mockBaseUrl = 'https://mock-horizon-url.com';
+  const mockUrl = 'https://mock-horizon-url.com';
   return {
-    horizon: { url: mockBaseUrl },
-    horizonEndpoints: {
-      evaluate: '/toggle/evaluate',
-      telemetry: '/toggle/telemetry',
-    },
+    horizon: { url: mockUrl },
     cache: {
       ttlSeconds: 30,
     },
@@ -21,9 +17,9 @@ vi.stubGlobal('fetch', vi.fn());
 
 describe('HyphenClient', () => {
   const publicKey = 'test-public-key';
-  const mockBaseUrl = 'https://mock-horizon-url.com';
-  const mockEvaluatePath = '/toggle/evaluate';
-  const mockTelemetryPath = '/toggle/telemetry';
+  const mockUrl = 'https://mock-horizon-url.com';
+  const mockEvaluateUrl = `${mockUrl}/toggle/evaluate`;
+  const mockTelemetryUrl = `${mockUrl}/toggle/telemetry`;
   const mockContext: HyphenEvaluationContext = {
     targetingKey: 'test-key',
     ipAddress: '127.0.0.1',
@@ -103,7 +99,7 @@ describe('HyphenClient', () => {
     const result = await client.evaluate(mockContext);
 
     expect(mockCacheClient.get).toHaveBeenCalledWith(mockContext);
-    expect(fetch).toHaveBeenCalledWith(`${mockBaseUrl}${mockEvaluatePath}`, {
+    expect(fetch).toHaveBeenCalledWith(`${mockUrl}/toggle/evaluate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -127,8 +123,8 @@ describe('HyphenClient', () => {
   it('should use multiple server URLs in case of failure', async () => {
     mockCacheClient.get.mockReturnValue(null);
 
-    const alternateBaseUrl = 'https://alternate-url.com';
-    options.horizonServerUrls = [alternateBaseUrl];
+    const alternateUrl = 'https://alternate-url.com';
+    options.horizonServerUrls = [alternateUrl];
 
     vi.mocked(fetch)
       .mockRejectedValueOnce(mockError) // First URL fails
@@ -141,14 +137,50 @@ describe('HyphenClient', () => {
     const result = await client.evaluate(mockContext);
 
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(fetch).toHaveBeenCalledWith(`${alternateBaseUrl}${mockEvaluatePath}`, expect.any(Object));
-    expect(fetch).toHaveBeenCalledWith(`${mockBaseUrl}${mockEvaluatePath}`, expect.any(Object));
+    expect(fetch).toHaveBeenNthCalledWith(1, `${alternateUrl}/toggle/evaluate`, expect.any(Object));
+    expect(fetch).toHaveBeenNthCalledWith(2, mockEvaluateUrl, expect.any(Object));
     expect(result).toEqual(mockResponse);
+  });
+
+  it('should handle URLs with existing paths', async () => {
+    const urlWithPath = 'https://mock-horizon-url.com/api/v1';
+    options.horizonServerUrls = [urlWithPath];
+    
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValue(mockResponse),
+    } as unknown as Response);
+
+    const client = new HyphenClient(publicKey, options);
+    await client.evaluate(mockContext);
+
+    expect(fetch).toHaveBeenCalledWith(
+      `${urlWithPath}/toggle/evaluate`,
+      expect.any(Object)
+    );
+  });
+
+  it('should handle URLs with trailing slashes', async () => {
+    const urlWithSlash = 'https://mock-horizon-url.com/';
+    options.horizonServerUrls = [urlWithSlash];
+    
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValue(mockResponse),
+    } as unknown as Response);
+
+    const client = new HyphenClient(publicKey, options);
+    await client.evaluate(mockContext);
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://mock-horizon-url.com/toggle/evaluate',
+      expect.any(Object)
+    );
   });
 
   it('should add horizon URL if not present in the server URLs', () => {
     const client = new HyphenClient(publicKey, options);
-    expect(client['horizonServerUrls']).toEqual([mockBaseUrl]);
+    expect(client['horizonServerUrls']).toEqual([mockUrl]);
   });
 
   it('should handle non-successful responses and set the lastError', async () => {
@@ -163,7 +195,7 @@ describe('HyphenClient', () => {
     const client = new HyphenClient(publicKey, options);
     await expect(client.evaluate(mockContext)).rejects.toThrowError(errorText);
 
-    expect(fetch).toHaveBeenCalledWith(`${mockBaseUrl}${mockEvaluatePath}`, expect.any(Object));
+    expect(fetch).toHaveBeenCalledWith(`${mockUrl}/toggle/evaluate`, expect.any(Object));
   });
 
   it('should successfully send telemetry data', async () => {
@@ -180,7 +212,7 @@ describe('HyphenClient', () => {
 
     await client.postTelemetry(payload);
 
-    expect(fetch).toHaveBeenCalledWith(`${mockBaseUrl}${mockTelemetryPath}`, {
+    expect(fetch).toHaveBeenCalledWith(mockTelemetryUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
