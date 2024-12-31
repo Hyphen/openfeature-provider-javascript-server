@@ -1,5 +1,5 @@
 import type { EvaluationResponse, HyphenEvaluationContext, HyphenProviderOptions, TelemetryPayload } from './types';
-import { horizon, horizonEndpoints } from './config';
+import { horizon } from './config';
 import type { Logger } from '@openfeature/server-sdk';
 import { CacheClient } from './cacheClient';
 
@@ -20,9 +20,9 @@ export class HyphenClient {
     for (let url of this.horizonServerUrls) {
       try {
         const baseUrl = new URL(url);
-        baseUrl.pathname = baseUrl.pathname.replace(/\/$/, '');
-        baseUrl.pathname += urlPath;
-
+        const basePath = baseUrl.pathname.replace(/\/$/, '');
+        urlPath = urlPath.replace(/^\//, '');
+        baseUrl.pathname = basePath ? `${basePath}/${urlPath}` : urlPath;
         url = baseUrl.toString();
         const response = await this.httpPost(url, payload);
         return response;
