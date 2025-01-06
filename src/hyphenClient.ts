@@ -2,7 +2,6 @@ import type { EvaluationResponse, HyphenEvaluationContext, HyphenProviderOptions
 import { horizon } from './config';
 import type { Logger } from '@openfeature/server-sdk';
 import { CacheClient } from './cacheClient';
-import { join as joinPath } from 'node:path/posix';
 
 export class HyphenClient {
   private readonly publicKey: string;
@@ -18,11 +17,14 @@ export class HyphenClient {
   private async tryUrls(urlPath: string, payload: unknown, logger?: Logger): Promise<Response> {
     let lastError: unknown;
 
-    for (const url of this.horizonServerUrls) {
+    for (let url of this.horizonServerUrls) {
       try {
         const baseUrl = new URL(url);
-        baseUrl.pathname = joinPath(baseUrl.pathname, urlPath);
-        const response = await this.httpPost(baseUrl.toString(), payload);
+        const basePath = baseUrl.pathname.replace(/\/$/, '');
+        urlPath = urlPath.replace(/^\//, '');
+        baseUrl.pathname = basePath ? `${basePath}/${urlPath}` : urlPath;
+        url = baseUrl.toString();
+        const response = await this.httpPost(url, payload);
         return response;
       } catch (error) {
         lastError = error;
