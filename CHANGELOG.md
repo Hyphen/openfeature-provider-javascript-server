@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.4...v1.0.5) (2025-01-06)
+
+
+### Bug Fixes
+
+* remove hardcoded horizon URL and dynamic URL generation ([#21](https://github.com/Hyphen/openfeature-provider-javascript-server/issues/21)) ([c8ccc49](https://github.com/Hyphen/openfeature-provider-javascript-server/commit/c8ccc49913c02825b21449738b8eec4dbf86d8fc))
+
 ## [1.0.4](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.3...v1.0.4) (2025-01-06)
 
 
