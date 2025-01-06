@@ -3,7 +3,8 @@ export function getOrgIdFromPublicKey(publicKey: string) {
     const keyWithoutPrefix = publicKey.replace(/^public_/, '');
     const decoded = Buffer.from(keyWithoutPrefix, 'base64').toString();
     const [orgId] = decoded.split(':');
-    return orgId;
+    const isValidOrgId = /^[a-zA-Z0-9_-]+$/.test(orgId);
+    return isValidOrgId ? orgId : undefined;
   } catch {
     return undefined;
   }
