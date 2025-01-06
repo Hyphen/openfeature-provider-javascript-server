@@ -5,21 +5,21 @@ import { buildDefaultHorizonUrl } from './utils';
 
 export class HyphenClient {
   private readonly publicKey: string;
-  private readonly horizonServerUrls: string[];
+  private readonly horizonUrls: string[];
   private readonly defaultHorizonUrl: string;
   private cache: CacheClient;
 
   constructor(publicKey: string, options: HyphenProviderOptions) {
     this.publicKey = publicKey;
     this.defaultHorizonUrl = buildDefaultHorizonUrl(publicKey);
-    this.horizonServerUrls = [...(options.horizonServerUrls || []), this.defaultHorizonUrl];
+    this.horizonUrls = [...(options.horizonServerUrls || []), this.defaultHorizonUrl];
     this.cache = new CacheClient(options.cache);
   }
 
   private async tryUrls(urlPath: string, payload: unknown, logger?: Logger): Promise<Response> {
     let lastError: unknown;
 
-    for (let url of this.horizonServerUrls) {
+    for (let url of this.horizonUrls) {
       try {
         const baseUrl = new URL(url);
         const basePath = baseUrl.pathname.replace(/\/$/, '');

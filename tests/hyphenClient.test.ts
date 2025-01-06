@@ -181,7 +181,7 @@ describe('HyphenClient', () => {
 
   it('should add horizon URL if not present in the server URLs', () => {
     const client = new HyphenClient(publicKey, options);
-    expect(client['horizonServerUrls']).toEqual([mockUrl]);
+    expect(client['horizonUrls']).toEqual([mockUrl]);
   });
 
   it('should handle non-successful responses and set the lastError', async () => {
