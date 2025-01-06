@@ -1,5 +1,5 @@
 import type { EvaluationResponse, HyphenEvaluationContext, HyphenProviderOptions, TelemetryPayload } from './types';
-import { horizon, horizonEndpoints } from './config';
+import { horizon } from './config';
 import type { Logger } from '@openfeature/server-sdk';
 import { CacheClient } from './cacheClient';
 
@@ -14,13 +14,34 @@ export class HyphenClient {
     this.cache = new CacheClient(options.cache);
   }
 
+  private async tryUrls(urlPath: string, payload: unknown, logger?: Logger): Promise<Response> {
+    let lastError: unknown;
+
+    for (let url of this.horizonServerUrls) {
+      try {
+        const baseUrl = new URL(url);
+        const basePath = baseUrl.pathname.replace(/\/$/, '');
+        urlPath = urlPath.replace(/^\//, '');
+        baseUrl.pathname = basePath ? `${basePath}/${urlPath}` : urlPath;
+        url = baseUrl.toString();
+        const response = await this.httpPost(url, payload);
+        return response;
+      } catch (error) {
+        lastError = error;
+        logger?.debug('Failed to fetch: ', url, error);
+      }
+    }
+    throw lastError;
+  }
+
   async evaluate(context: HyphenEvaluationContext, logger?: Logger): Promise<EvaluationResponse> {
     const cachedResponse = this.cache.get<EvaluationResponse>(context);
     if (cachedResponse) {
       return cachedResponse;
     }
 
-    const evaluationResponse = await this.fetchEvaluationResponse(this.horizonServerUrls, context, logger);
+    const response = await this.tryUrls('/toggle/evaluate', context, logger);
+    const evaluationResponse = await response.json();
 
     if (evaluationResponse) {
       this.cache.set(context, evaluationResponse);
@@ -28,52 +49,25 @@ export class HyphenClient {
     return evaluationResponse;
   }
 
-  private async fetchEvaluationResponse(
-    serverUrls: string[],
-    context: HyphenEvaluationContext,
-    logger?: Logger,
-  ): Promise<EvaluationResponse> {
-    let lastError: unknown;
-
-    for (const url of serverUrls) {
-      try {
-        const response = await this.httpPost(`${url}/toggle/evaluate`, context);
-        return await response.json();
-      } catch (error) {
-        lastError = error;
-        logger?.debug('Failed to fetch evaluation: ', url, error);
-      }
-    }
-    throw lastError;
+  async postTelemetry(payload: TelemetryPayload, logger?: Logger) {
+    await this.tryUrls('/toggle/telemetry', payload, logger);
   }
 
   private async httpPost(url: string, payload: unknown) {
-    let lastError: unknown;
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.publicKey,
-        },
-        body: JSON.stringify(payload),
-      });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.publicKey,
+      },
+      body: JSON.stringify(payload),
+    });
 
-      if (response.ok) {
-        return response;
-      } else {
-        const errorText = await response.text();
-        lastError = new Error(errorText);
-        console.debug('Failed to fetch', url, errorText);
-      }
-    } catch (error) {
-      lastError = error;
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
     }
 
-    throw lastError;
-  }
-
-  async postTelemetry(payload: TelemetryPayload) {
-    await this.httpPost(horizonEndpoints.telemetry, payload);
+    return response;
   }
 }
