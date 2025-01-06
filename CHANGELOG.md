@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.3...v1.0.4) (2025-01-06)
+
+
+### Bug Fixes
+
+* include application and environment in telemetry context ([#20](https://github.com/Hyphen/openfeature-provider-javascript-server/issues/20)) ([b09326f](https://github.com/Hyphen/openfeature-provider-javascript-server/commit/b09326fcf8a8a229391889be36a018b4c4decab9))
+
 ## [1.0.3](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.2...v1.0.3) (2025-01-06)
 
 
