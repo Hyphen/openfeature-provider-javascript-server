@@ -16,8 +16,9 @@ vi.mock('../src/config', () => {
 vi.stubGlobal('fetch', vi.fn());
 
 describe('HyphenClient', () => {
-  const publicKey = 'test-public-key';
-  const mockUrl = 'https://mock-horizon-url.com';
+  const publicKey = 'public_b3JnLTEyMzpwcm9qZWN0OnJhbmRvbTEyMw==';
+  const organizationId = 'org-123';
+  const mockUrl = `https://${organizationId}.toggle.hyphen.cloud`;
   const mockEvaluateUrl = `${mockUrl}/toggle/evaluate`;
   const mockTelemetryUrl = `${mockUrl}/toggle/telemetry`;
   const mockContext: HyphenEvaluationContext = {
