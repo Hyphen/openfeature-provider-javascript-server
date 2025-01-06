@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.2...v1.0.3) (2025-01-06)
+
+
+### Bug Fixes
+
+* refactor API request handling ([#18](https://github.com/Hyphen/openfeature-provider-javascript-server/issues/18)) ([e17ded9](https://github.com/Hyphen/openfeature-provider-javascript-server/commit/e17ded95f5903101459808c63c6197e6f48a2fb0))
+
 ## [1.0.2](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.1...v1.0.2) (2024-12-30)
 
 
