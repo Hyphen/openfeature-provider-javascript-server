@@ -18,7 +18,7 @@ export class HyphenClient {
   private async tryUrls(urlPath: string, payload: unknown, logger?: Logger): Promise<Response> {
     let lastError: unknown;
 
-    for (let url of this.horizonServerUrls) {
+    for (const url of this.horizonServerUrls) {
       try {
         const baseUrl = new URL(url);
         baseUrl.pathname = joinPath(baseUrl.pathname, urlPath);
