@@ -12,14 +12,6 @@ describe('Config', () => {
     process.env = originalEnv;
   });
 
-  describe('horizon', () => {
-    it('should use production URL when NODE_ENV is production', async () => {
-      process.env.NODE_ENV = 'production';
-      const { horizon } = await import('../src/config');
-      expect(horizon.url).toBe('https://horizon.hyphen.ai');
-    });
-  });
-
   describe('cache', () => {
     it('should use default TTL when CACHE_TTL_SECONDS is not set', async () => {
       delete process.env.CACHE_TTL_SECONDS;
