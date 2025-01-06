@@ -96,8 +96,9 @@ export class HyphenProvider implements Provider {
     };
 
     try {
+      const { application, environment} = this.options;
       const payload: TelemetryPayload = {
-        context: hookContext.context as HyphenEvaluationContext,
+        context: {...hookContext.context, application, environment} as HyphenEvaluationContext,
         data: { toggle: parsedEvaluationDetails as Evaluation},
       };
 
