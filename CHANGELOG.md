@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.5...v1.0.6) (2025-01-07)
+
+
+### Bug Fixes
+
+* update README, rename horizonUrls variable ([#23](https://github.com/Hyphen/openfeature-provider-javascript-server/issues/23)) ([89404ec](https://github.com/Hyphen/openfeature-provider-javascript-server/commit/89404ec3e59c9f08b9ee192ad5fb4d86aebda691))
+
 ## [1.0.5](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.4...v1.0.5) (2025-01-06)
 
 
