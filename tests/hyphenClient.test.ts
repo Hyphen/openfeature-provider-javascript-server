@@ -5,9 +5,7 @@ import { CacheClient } from '../src/cacheClient';
 
 vi.mock('../src/cacheClient');
 vi.mock('../src/config', () => {
-  const mockUrl = 'https://mock-horizon-url.com';
   return {
-    horizon: { url: mockUrl },
     cache: {
       ttlSeconds: 30,
     },
@@ -57,7 +55,7 @@ describe('HyphenClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     options = {
-      horizonServerUrls: [],
+      horizonUrls: [],
       application: 'test-app',
       environment: 'test-env',
       cache: { ttlSeconds: 600 },
@@ -125,7 +123,7 @@ describe('HyphenClient', () => {
     mockCacheClient.get.mockReturnValue(null);
 
     const alternateUrl = 'https://alternate-url.com';
-    options.horizonServerUrls = [alternateUrl];
+    options.horizonUrls = [alternateUrl];
 
     vi.mocked(fetch)
       .mockRejectedValueOnce(mockError) // First URL fails
@@ -145,8 +143,8 @@ describe('HyphenClient', () => {
 
   it('should handle URLs with existing paths', async () => {
     const urlWithPath = 'https://mock-horizon-url.com/api/v1';
-    options.horizonServerUrls = [urlWithPath];
-    
+    options.horizonUrls = [urlWithPath];
+
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValue(mockResponse),
@@ -155,16 +153,13 @@ describe('HyphenClient', () => {
     const client = new HyphenClient(publicKey, options);
     await client.evaluate(mockContext);
 
-    expect(fetch).toHaveBeenCalledWith(
-      `${urlWithPath}/toggle/evaluate`,
-      expect.any(Object)
-    );
+    expect(fetch).toHaveBeenCalledWith(`${urlWithPath}/toggle/evaluate`, expect.any(Object));
   });
 
   it('should handle URLs with trailing slashes', async () => {
     const urlWithSlash = 'https://mock-horizon-url.com/';
-    options.horizonServerUrls = [urlWithSlash];
-    
+    options.horizonUrls = [urlWithSlash];
+
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValue(mockResponse),
@@ -173,10 +168,7 @@ describe('HyphenClient', () => {
     const client = new HyphenClient(publicKey, options);
     await client.evaluate(mockContext);
 
-    expect(fetch).toHaveBeenCalledWith(
-      'https://mock-horizon-url.com/toggle/evaluate',
-      expect.any(Object)
-    );
+    expect(fetch).toHaveBeenCalledWith('https://mock-horizon-url.com/toggle/evaluate', expect.any(Object));
   });
 
   it('should add horizon URL if not present in the server URLs', () => {

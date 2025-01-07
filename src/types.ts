@@ -7,7 +7,7 @@ export type HyphenProviderOptions = {
   /** The environment for the Hyphen project (e.g., `production`, `staging`). */
   environment: string;
   /** The Hyphen server URL */
-  horizonServerUrls?: string[];
+  horizonUrls?: string[];
   /** Flag to enable toggle usage */
   enableToggleUsage?: boolean;
   /** The cache options for the provider */
@@ -16,15 +16,13 @@ export type HyphenProviderOptions = {
     ttlSeconds?: number;
     /** Generate a cache key function for the evaluation context. */
     generateCacheKeyFn?: GenerateCacheKeyFn;
-  }
+  };
 };
 
 export type GenerateCacheKeyFn = (context: HyphenEvaluationContext) => string;
 
 type WithUndefined<T> = {
-  [P in keyof T]: T[P] extends object
-    ? WithUndefined<T[P]> | undefined
-    : T[P] | undefined;
+  [P in keyof T]: T[P] extends object ? WithUndefined<T[P]> | undefined : T[P] | undefined;
 };
 
 type OptionalContextProperties = WithUndefined<EvaluationContext>;

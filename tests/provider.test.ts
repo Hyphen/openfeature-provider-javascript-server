@@ -5,11 +5,6 @@ import { HyphenClient } from '../src/hyphenClient';
 import type { Evaluation, EvaluationResponse } from '../src';
 
 vi.mock('../src/config', () => ({
-  horizon: { url: 'https://mock-horizon-url.com' },
-  horizonEndpoints: {
-    evaluate: 'https://mock-horizon-url.com/evaluate',
-    telemetry: 'https://mock-horizon-url.com/telemetry',
-  },
   cache: {
     ttlSeconds: 30,
   },
@@ -32,7 +27,7 @@ const createMockEvaluation = (
 describe('HyphenProvider', () => {
   const publicKey = 'test-public-key';
   const options = {
-    horizonServerUrls: ['https://test-server.com'],
+    horizonUrls: ['https://test-server.com'],
     application: 'test-app',
     environment: 'test-env',
   };

@@ -12,7 +12,7 @@ export class HyphenClient {
   constructor(publicKey: string, options: HyphenProviderOptions) {
     this.publicKey = publicKey;
     this.defaultHorizonUrl = buildDefaultHorizonUrl(publicKey);
-    this.horizonUrls = [...(options.horizonServerUrls || []), this.defaultHorizonUrl];
+    this.horizonUrls = [...(options.horizonUrls || []), this.defaultHorizonUrl];
     this.cache = new CacheClient(options.cache);
   }
 

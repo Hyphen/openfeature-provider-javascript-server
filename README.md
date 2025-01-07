@@ -85,12 +85,13 @@ console.log(flagDetailsWithContext.value); // true or false
 
 ### Options
 
-| Option              | Type    | Description                                                                           |
-|---------------------|---------|---------------------------------------------------------------------------------------|
-| `application`       | string  | The application id or alternate id.                                                   |
+| Option              | Type    | Description                                                                         |
+|---------------------|---------|-------------------------------------------------------------------------------------|
+| `application`       | string  | The application id or alternate id.                                                 |
 | `environment`       | string  | The environment in which your application is running (e.g., `production`, `staging`). |
-| `enableToggleUsage` | boolean | Enable or disable the logging of toggle usage (telemetry).                           |
-| `cache`             | object  | Configuration for caching feature flag evaluations.                                   |
+| `horizonUrls`       | string[] | An array of Hyphen Horizon URLs to use for fetching feature flags.                |
+| `enableToggleUsage` | boolean | Enable or disable the logging of toggle usage (telemetry).                          |
+| `cache`             | object  | Configuration for caching feature flag evaluations.                                 |
 
 ### Cache Configuration
 
