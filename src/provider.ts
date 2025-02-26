@@ -245,13 +245,6 @@ export class HyphenProvider implements Provider {
       throw new Error('environment is required');
     }
     
-    // Validate the environment format
-    if (typeof context.environment === 'string') {
-      this.validateEnvironmentFormat(context.environment);
-    } else {
-      throw new Error('environment must be a string');
-    }
-    
     return context as HyphenEvaluationContext;
   }
 }
