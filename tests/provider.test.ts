@@ -64,7 +64,7 @@ describe('HyphenProvider', () => {
       // With project environment ID format
       expect(() => new HyphenProvider(publicKey, { 
         ...options, 
-        environment: 'env_abc123' 
+        environment: 'pevr_abc123' 
       })).not.toThrow();
     });
 
@@ -339,7 +339,7 @@ describe('HyphenProvider', () => {
 
   describe('validateEnvironmentFormat', () => {
     it('should accept a valid project environment ID', () => {
-      expect(() => provider['validateEnvironmentFormat']('env_abc123')).not.toThrow();
+      expect(() => provider['validateEnvironmentFormat']('pevr_abc123')).not.toThrow();
     });
 
     it('should accept a valid alternateId', () => {
@@ -396,13 +396,13 @@ describe('HyphenProvider', () => {
       const result2 = provider['validateContext']({
         targetingKey: 'key',
         application: 'test',
-        environment: 'env_abc123',
+        environment: 'pevr_abc123',
       } as any);
 
       expect(result2).toEqual({
         targetingKey: 'key',
         application: 'test',
-        environment: 'env_abc123',
+        environment: 'pevr_abc123',
       });
     });
 

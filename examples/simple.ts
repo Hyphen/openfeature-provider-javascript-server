@@ -12,7 +12,7 @@ const options: HyphenProviderOptions = {
   // Using alternateId format:
   environment: 'production',
   // OR using project environment ID format:
-  // environment: 'env_abc123',
+  // environment: 'pevr__abc123',
 };
 
 const context: HyphenEvaluationContext = {

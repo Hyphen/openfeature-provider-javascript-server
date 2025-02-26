@@ -217,15 +217,15 @@ export class HyphenProvider implements Provider {
   }
 
   private validateEnvironmentFormat(environment: string): void {
-    // Check if it's a project environment ID (starts with 'env_')
-    const isEnvironmentId = environment.startsWith('env_');
+    // Check if it's a project environment ID (starts with 'pevr_')
+    const isEnvironmentId = environment.startsWith('pevr_');
     
     // Check if it's a valid alternateId (1-25 chars, lowercase letters, numbers, hyphens, underscores)
     const isValidAlternateId = /^(?!.*\b(environments)\b)[a-z0-9\-_]{1,25}$/.test(environment);
     
     if (!isEnvironmentId && !isValidAlternateId) {
       throw new Error(
-        'Invalid environment format. Must be either a project environment ID (starting with "env_") ' +
+        'Invalid environment format. Must be either a project environment ID (starting with "pevr_") ' +
         'or a valid alternateId (1-25 characters, lowercase letters, numbers, hyphens, and underscores).'
       );
     }
