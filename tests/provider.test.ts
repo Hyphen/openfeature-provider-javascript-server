@@ -53,6 +53,43 @@ describe('HyphenProvider', () => {
         'Environment is required',
       );
     });
+
+    it('should accept valid environment formats', () => {
+      // With alternateId format
+      expect(() => new HyphenProvider(publicKey, { 
+        ...options, 
+        environment: 'production' 
+      })).not.toThrow();
+
+      // With project environment ID format
+      expect(() => new HyphenProvider(publicKey, { 
+        ...options, 
+        environment: 'env_abc123' 
+      })).not.toThrow();
+    });
+
+    it('should throw an error if environment has invalid format', () => {
+      expect(() => new HyphenProvider(publicKey, { 
+        ...options, 
+        environment: 'INVALID_UPPERCASE' 
+      })).toThrowError('Invalid environment format');
+
+      expect(() => new HyphenProvider(publicKey, { 
+        ...options, 
+        environment: 'a'.repeat(26) 
+      })).toThrowError('Invalid environment format');
+
+      expect(() => new HyphenProvider(publicKey, { 
+        ...options, 
+        environment: 'invalid@character' 
+      })).toThrowError('Invalid environment format');
+
+      expect(() => new HyphenProvider(publicKey, { 
+        ...options, 
+        environment: 'environments' 
+      })).toThrowError('Invalid environment format');
+    });
+
     it('should delete the after hook if enableToggleUsage is false', () => {
       const optionsWithToggleDisabled = {
         ...options,
@@ -300,6 +337,33 @@ describe('HyphenProvider', () => {
     });
   });
 
+  describe('validateEnvironmentFormat', () => {
+    it('should accept a valid project environment ID', () => {
+      expect(() => provider['validateEnvironmentFormat']('env_abc123')).not.toThrow();
+    });
+
+    it('should accept a valid alternateId', () => {
+      expect(() => provider['validateEnvironmentFormat']('production')).not.toThrow();
+      expect(() => provider['validateEnvironmentFormat']('staging-env')).not.toThrow();
+      expect(() => provider['validateEnvironmentFormat']('dev_test_123')).not.toThrow();
+    });
+
+    it('should reject an invalid environment format', () => {
+      expect(() => provider['validateEnvironmentFormat']('INVALID_UPPERCASE')).toThrowError(
+        'Invalid environment format'
+      );
+      expect(() => provider['validateEnvironmentFormat']('a'.repeat(26))).toThrowError(
+        'Invalid environment format'
+      );
+      expect(() => provider['validateEnvironmentFormat']('invalid@character')).toThrowError(
+        'Invalid environment format'
+      );
+      expect(() => provider['validateEnvironmentFormat']('environments')).toThrowError(
+        'Invalid environment format'
+      );
+    });
+  });
+
   describe('validateContext', () => {
     it('should throw an error if context is missing required fields', () => {
       expect(() => provider['validateContext'](null as any)).toThrowError('Evaluation context is required');
@@ -314,18 +378,40 @@ describe('HyphenProvider', () => {
       );
     });
 
-    it('should return the context if all required fields are present', () => {
-      const result = provider['validateContext']({
+    it('should return the context if all required fields are present with valid environment format', () => {
+      // With alternateId format
+      const result1 = provider['validateContext']({
         targetingKey: 'key',
         application: 'test',
         environment: 'test-env',
       } as any);
 
-      expect(result).toEqual({
+      expect(result1).toEqual({
         targetingKey: 'key',
         application: 'test',
         environment: 'test-env',
       });
+
+      // With project environment ID format
+      const result2 = provider['validateContext']({
+        targetingKey: 'key',
+        application: 'test',
+        environment: 'env_abc123',
+      } as any);
+
+      expect(result2).toEqual({
+        targetingKey: 'key',
+        application: 'test',
+        environment: 'env_abc123',
+      });
+    });
+
+    it('should throw an error if environment has invalid format', () => {
+      expect(() => provider['validateContext']({
+        targetingKey: 'key',
+        application: 'test',
+        environment: 'INVALID_UPPERCASE',
+      } as any)).toThrowError('Invalid environment format');
     });
   });
 });

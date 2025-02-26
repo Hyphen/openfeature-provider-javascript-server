@@ -9,7 +9,10 @@ const publicKey = 'your-public-key';
 
 const options: HyphenProviderOptions = {
   application: 'application-id',
+  // Using alternateId format:
   environment: 'production',
+  // OR using project environment ID format:
+  // environment: 'env_abc123',
 };
 
 const context: HyphenEvaluationContext = {

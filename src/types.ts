@@ -4,7 +4,12 @@ import { ResolutionReason } from '@openfeature/core';
 export type HyphenProviderOptions = {
   /** The application name or ID for the current evaluation. */
   application: string;
-  /** The environment for the Hyphen project (e.g., `production`, `staging`). */
+  /** 
+   * The environment identifier for the Hyphen project.
+   * This can be either:
+   * - A project environment ID (e.g., `env_abc123`)
+   * - A valid alternateId (1-25 characters, lowercase letters, numbers, hyphens, and underscores)
+   */
   environment: string;
   /** The Hyphen server URL */
   horizonUrls?: string[];

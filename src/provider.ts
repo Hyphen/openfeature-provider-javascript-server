@@ -27,7 +27,7 @@ export class HyphenProvider implements Provider {
     version: pkg.version,
   };
 
-  constructor(publicKey: string, options: HyphenProviderOptions) {
+  private validateOptions(options: HyphenProviderOptions): void {
     if(!options.application) {
       throw new Error('Application is required');
     }
@@ -35,6 +35,12 @@ export class HyphenProvider implements Provider {
       throw new Error('Environment is required');
     }
 
+    this.validateEnvironmentFormat(options.environment);
+  }
+
+  constructor(publicKey: string, options: HyphenProviderOptions) {
+    this.validateOptions(options);
+    
     this.hyphenClient = new HyphenClient(publicKey, options);
     this.options = options;
     this.runsOn = 'server';
@@ -210,6 +216,21 @@ export class HyphenProvider implements Provider {
     };
   }
 
+  private validateEnvironmentFormat(environment: string): void {
+    // Check if it's a project environment ID (starts with 'env_')
+    const isEnvironmentId = environment.startsWith('env_');
+    
+    // Check if it's a valid alternateId (1-25 chars, lowercase letters, numbers, hyphens, underscores)
+    const isValidAlternateId = /^(?!.*\b(environments)\b)[a-z0-9\-_]{1,25}$/.test(environment);
+    
+    if (!isEnvironmentId && !isValidAlternateId) {
+      throw new Error(
+        'Invalid environment format. Must be either a project environment ID (starting with "env_") ' +
+        'or a valid alternateId (1-25 characters, lowercase letters, numbers, hyphens, and underscores).'
+      );
+    }
+  }
+
   private validateContext(context: EvaluationContext): HyphenEvaluationContext {
     if (!context) {
       throw new Error('Evaluation context is required');
@@ -223,6 +244,14 @@ export class HyphenProvider implements Provider {
     if (!context.environment) {
       throw new Error('environment is required');
     }
+    
+    // Validate the environment format
+    if (typeof context.environment === 'string') {
+      this.validateEnvironmentFormat(context.environment);
+    } else {
+      throw new Error('environment must be a string');
+    }
+    
     return context as HyphenEvaluationContext;
   }
 }
