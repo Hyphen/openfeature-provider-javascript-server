@@ -7,7 +7,7 @@ export type HyphenProviderOptions = {
   /** 
    * The environment identifier for the Hyphen project.
    * This can be either:
-   * - A project environment ID (e.g., `env_abc123`)
+   * - A project environment ID (e.g., `pevr_abc123`)
    * - A valid alternateId (1-25 characters, lowercase letters, numbers, hyphens, and underscores)
    */
   environment: string;
