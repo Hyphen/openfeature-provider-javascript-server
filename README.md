@@ -48,7 +48,7 @@ const options: HyphenProviderOptions = {
 // OR using a project environment ID
 // const options: HyphenProviderOptions = {
 //   application: 'your-application-name',
-//   environment: 'env_abc123', // Using project environment ID format
+//   environment: 'pevr_abc123', // Using project environment ID format
 // };
 
 await OpenFeature.setProviderAndWait(new HyphenProvider(publicKey, options));
@@ -68,7 +68,7 @@ To evaluate a feature flag with specific user or application context, define and
 const context: HyphenEvaluationContext = {
   targetingKey: 'user-123',
   // You can specify the environment in the context
-  environment: 'production', // or 'env_abc123'
+  environment: 'production', // or 'pevr_abc123'
   ipAddress: '203.0.113.42',
   customAttributes: {
     subscriptionLevel: 'premium',
@@ -119,7 +119,7 @@ const options: HyphenProviderOptions = {
   // Using alternateId format:
   environment: 'production',
   // OR using project environment ID format:
-  // environment: 'env_abc123',
+  // environment: 'pevr_abc123',
   cache: {
     ttlSeconds: 600, // 10 minutes
     generateCacheKeyFn: (context: HyphenEvaluationContext) => {
