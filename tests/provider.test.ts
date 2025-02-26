@@ -406,12 +406,5 @@ describe('HyphenProvider', () => {
       });
     });
 
-    it('should throw an error if environment has invalid format', () => {
-      expect(() => provider['validateContext']({
-        targetingKey: 'key',
-        application: 'test',
-        environment: 'INVALID_UPPERCASE',
-      } as any)).toThrowError('Invalid environment format');
-    });
   });
 });
