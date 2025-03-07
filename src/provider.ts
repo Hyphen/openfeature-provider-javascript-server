@@ -13,6 +13,7 @@ import {
   type Provider,
   type ResolutionDetails,
   StandardResolutionReasons,
+  ProviderFatalError
 } from '@openfeature/server-sdk';
 
 import { Evaluation, HyphenEvaluationContext, HyphenProviderOptions, TelemetryPayload } from './types';
@@ -32,10 +33,10 @@ export class HyphenProvider implements Provider {
 
   private validateOptions(options: HyphenProviderOptions): void {
     if (!options.application) {
-      throw new Error('Application is required');
+      throw new ProviderFatalError('Application is required');
     }
     if (!options.environment) {
-      throw new Error('Environment is required');
+      throw new ProviderFatalError('Environment is required');
     }
 
     this.validateEnvironmentFormat(options.environment);
