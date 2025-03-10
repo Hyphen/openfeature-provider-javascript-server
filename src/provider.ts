@@ -1,15 +1,19 @@
 import {
   type BeforeHookContext,
   ErrorCode,
-  type EvaluationContext, EvaluationDetails, FlagValue,
+  type EvaluationContext,
+  EvaluationDetails,
+  FlagValue,
   type Hook,
   type HookContext,
-  type JsonValue, type Logger,
+  type JsonValue,
+  type Logger,
   OpenFeatureEventEmitter,
   type Paradigm,
   type Provider,
   type ResolutionDetails,
   StandardResolutionReasons,
+  ProviderFatalError
 } from '@openfeature/server-sdk';
 
 import { Evaluation, HyphenEvaluationContext, HyphenProviderOptions, TelemetryPayload } from './types';
@@ -27,13 +31,19 @@ export class HyphenProvider implements Provider {
     version: pkg.version,
   };
 
+  private validateOptions(options: HyphenProviderOptions): void {
+    if (!options.application) {
+      throw new ProviderFatalError('Application is required');
+    }
+    if (!options.environment) {
+      throw new ProviderFatalError('Environment is required');
+    }
+
+    this.validateEnvironmentFormat(options.environment);
+  }
+
   constructor(publicKey: string, options: HyphenProviderOptions) {
-    if(!options.application) {
-      throw new Error('Application is required');
-    }
-    if(!options.environment) {
-      throw new Error('Environment is required');
-    }
+    this.validateOptions(options);
 
     this.hyphenClient = new HyphenClient(publicKey, options);
     this.options = options;
@@ -46,8 +56,8 @@ export class HyphenProvider implements Provider {
       after: this.afterHook,
     };
 
-    if(options.enableToggleUsage === false) {
-      delete hook.after
+    if (options.enableToggleUsage === false) {
+      delete hook.after;
     }
 
     this.hooks = [hook];
@@ -96,10 +106,10 @@ export class HyphenProvider implements Provider {
     };
 
     try {
-      const { application, environment} = this.options;
+      const { application, environment } = this.options;
       const payload: TelemetryPayload = {
-        context: {...hookContext.context, application, environment} as HyphenEvaluationContext,
-        data: { toggle: parsedEvaluationDetails as Evaluation},
+        context: { ...hookContext.context, application, environment } as HyphenEvaluationContext,
+        data: { toggle: parsedEvaluationDetails as Evaluation },
       };
 
       await this.hyphenClient.postTelemetry(payload);
@@ -136,7 +146,7 @@ export class HyphenProvider implements Provider {
     context: EvaluationContext,
     expectedType: Evaluation['type'],
     defaultValue: T,
-    logger?: Logger
+    logger?: Logger,
   ): Promise<{ evaluation: Evaluation; error?: ResolutionDetails<T> }> {
     const evaluations = await this.hyphenClient.evaluate(context as HyphenEvaluationContext, logger);
     const evaluation = evaluations?.toggles?.[flagKey];
@@ -149,12 +159,16 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: boolean,
     context: EvaluationContext,
-    logger?: Logger
+    logger?: Logger,
   ): Promise<ResolutionDetails<boolean>> {
     const { evaluation, error } = await this.getEvaluation(flagKey, context, 'boolean', defaultValue, logger);
     if (error) return error;
-
-    const value = Boolean(evaluation.value);
+    let value: boolean;
+    if (typeof evaluation.value === 'string') {
+      value = evaluation.value.toLowerCase() === 'true';
+    } else {
+      value = Boolean(evaluation.value);
+    }
     return {
       value,
       variant: evaluation.value?.toString(),
@@ -166,7 +180,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: string,
     context: EvaluationContext,
-    logger?: Logger
+    logger?: Logger,
   ): Promise<ResolutionDetails<string>> {
     const { evaluation, error } = await this.getEvaluation(flagKey, context, 'string', defaultValue, logger);
     if (error) return error;
@@ -182,7 +196,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: number,
     context: EvaluationContext,
-    logger?: Logger
+    logger?: Logger,
   ): Promise<ResolutionDetails<number>> {
     const { evaluation, error } = await this.getEvaluation(flagKey, context, 'number', defaultValue, logger);
     if (error) return error;
@@ -198,7 +212,7 @@ export class HyphenProvider implements Provider {
     flagKey: string,
     defaultValue: T,
     context: EvaluationContext,
-    logger?: Logger
+    logger?: Logger,
   ): Promise<ResolutionDetails<T>> {
     const { evaluation, error } = await this.getEvaluation(flagKey, context, 'object', defaultValue, logger);
     if (error) return error;
@@ -208,6 +222,21 @@ export class HyphenProvider implements Provider {
       variant: evaluation.value.toString(),
       reason: evaluation.reason,
     };
+  }
+
+  private validateEnvironmentFormat(environment: string): void {
+    // Check if it's a project environment ID (starts with 'pevr_')
+    const isEnvironmentId = environment.startsWith('pevr_');
+
+    // Check if it's a valid alternateId (1-25 chars, lowercase letters, numbers, hyphens, underscores)
+    const isValidAlternateId = /^(?!.*\b(environments)\b)[a-z0-9\-_]{1,25}$/.test(environment);
+
+    if (!isEnvironmentId && !isValidAlternateId) {
+      throw new Error(
+        'Invalid environment format. Must be either a project environment ID (starting with "pevr_") ' +
+          'or a valid alternateId (1-25 characters, lowercase letters, numbers, hyphens, and underscores).',
+      );
+    }
   }
 
   private validateContext(context: EvaluationContext): HyphenEvaluationContext {
@@ -223,6 +252,7 @@ export class HyphenProvider implements Provider {
     if (!context.environment) {
       throw new Error('environment is required');
     }
+
     return context as HyphenEvaluationContext;
   }
 }

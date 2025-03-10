@@ -4,7 +4,12 @@ import { ResolutionReason } from '@openfeature/core';
 export type HyphenProviderOptions = {
   /** The application name or ID for the current evaluation. */
   application: string;
-  /** The environment for the Hyphen project (e.g., `production`, `staging`). */
+  /**
+   * The environment identifier for the Hyphen project.
+   * This can be either:
+   * - A project environment ID (e.g., `pevr_abc123`)
+   * - A valid alternateId (1-25 characters, lowercase letters, numbers, hyphens, and underscores)
+   */
   environment: string;
   /** The Hyphen server URL */
   horizonUrls?: string[];
@@ -17,17 +22,12 @@ export type HyphenProviderOptions = {
     /** Generate a cache key function for the evaluation context. */
     generateCacheKeyFn?: GenerateCacheKeyFn;
   };
+  [key: string]: any; // Add index signature to satisfy EvaluationContext
 };
 
 export type GenerateCacheKeyFn = (context: HyphenEvaluationContext) => string;
 
-type WithUndefined<T> = {
-  [P in keyof T]: T[P] extends object ? WithUndefined<T[P]> | undefined : T[P] | undefined;
-};
-
-type OptionalContextProperties = WithUndefined<EvaluationContext>;
-
-export interface HyphenEvaluationContext extends OptionalContextProperties {
+export interface HyphenEvaluationContext extends EvaluationContext {
   /** The key used for caching the evaluation response. */
   targetingKey: string;
   /** The IP address of the user making the request. */
@@ -45,6 +45,7 @@ export interface HyphenEvaluationContext extends OptionalContextProperties {
     /** Custom attributes specific to the user. */
     customAttributes?: Record<string, any>;
   };
+  [key: string]: any;
 }
 
 export interface Evaluation {

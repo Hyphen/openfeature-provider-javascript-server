@@ -39,10 +39,17 @@ import { HyphenProvider, type HyphenProviderOptions } from '@hyphen/openfeature-
 
 const publicKey = "your-public-key-here";
 
+// Example using an alternateId for environment
 const options: HyphenProviderOptions = {
-application: 'your-application-name',
-environment: 'production',
+  application: 'your-application-name',
+  environment: 'production', // Using alternateId format
 };
+
+// OR using a project environment ID
+// const options: HyphenProviderOptions = {
+//   application: 'your-application-name',
+//   environment: 'pevr_abc123', // Using project environment ID format
+// };
 
 await OpenFeature.setProviderAndWait(new HyphenProvider(publicKey, options));
 
@@ -60,6 +67,8 @@ To evaluate a feature flag with specific user or application context, define and
 ```typescript
 const context: HyphenEvaluationContext = {
   targetingKey: 'user-123',
+  // You can specify the environment in the context
+  environment: 'production', // or 'pevr_abc123'
   ipAddress: '203.0.113.42',
   customAttributes: {
     subscriptionLevel: 'premium',
@@ -88,7 +97,7 @@ console.log(flagDetailsWithContext.value); // true or false
 | Option              | Type    | Description                                                                         |
 |---------------------|---------|-------------------------------------------------------------------------------------|
 | `application`       | string  | The application id or alternate id.                                                 |
-| `environment`       | string  | The environment in which your application is running (e.g., `production`, `staging`). |
+| `environment`       | string  | The environment identifier for the Hyphen project (project environment ID or alternateId). |
 | `horizonUrls`       | string[] | An array of Hyphen Horizon URLs to use for fetching feature flags.                |
 | `enableToggleUsage` | boolean | Enable or disable the logging of toggle usage (telemetry).                          |
 | `cache`             | object  | Configuration for caching feature flag evaluations.                                 |
@@ -107,7 +116,10 @@ Example with cache configuration:
 ```typescript
 const options: HyphenProviderOptions = {
   application: 'your-application-name',
+  // Using alternateId format:
   environment: 'production',
+  // OR using project environment ID format:
+  // environment: 'pevr_abc123',
   cache: {
     ttlSeconds: 600, // 10 minutes
     generateCacheKeyFn: (context: HyphenEvaluationContext) => {
@@ -126,6 +138,7 @@ Provide an `EvaluationContext` to pass contextual data for feature evaluation.
 | Field               | Type                 | Description                                                                 |
 |---------------------|----------------------|-----------------------------------------------------------------------------|
 | `targetingKey`      | `string`            | The key used for caching the evaluation response.                          |
+| `environment`       | `string`            | The environment identifier for the Hyphen project (project environment ID or alternateId). |
 | `ipAddress`         | `string`            | The IP address of the user making the request.                             |
 | `customAttributes`  | `Record<string, any>` | Custom attributes for additional contextual information.                   |
 | `user`              | `object`            | An object containing user-specific information for the evaluation.         |

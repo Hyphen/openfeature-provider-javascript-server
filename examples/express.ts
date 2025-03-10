@@ -13,7 +13,10 @@ const publicKey = 'your-public-key';
 
 const options: HyphenProviderOptions = {
   application: 'application-id',
+  // Using alternateId format:
   environment: 'production',
+  // OR using project environment ID format:
+  // environment: 'pevr__abc123',
 };
 
 // Register the HyphenProvider
