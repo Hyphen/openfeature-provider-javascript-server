@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.6...v1.0.7) (2025-03-10)
+
+
+### Bug Fixes
+
+* add environment validation ([#24](https://github.com/Hyphen/openfeature-provider-javascript-server/issues/24)) ([12d4a49](https://github.com/Hyphen/openfeature-provider-javascript-server/commit/12d4a49564dae8ba78c844f7b64531e2ca6abdcd))
+
 ## [1.0.6](https://github.com/Hyphen/openfeature-provider-javascript-server/compare/v1.0.5...v1.0.6) (2025-01-07)
 
 
