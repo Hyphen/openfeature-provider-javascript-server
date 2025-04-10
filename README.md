@@ -26,12 +26,12 @@ npm install @openfeature/server-sdk @hyphen/openfeature-server-provider
 
 ## Usage
 
-### Example: Basic Setup
+### Basic Setup
 
 To integrate the Hyphen Toggle provider into your application, follow these steps:
 
 1. **Set up the provider**: Register the `HyphenProvider` with OpenFeature using your `publicKey` and provider options.
-2. **Evaluate a feature toggle**: Use the client to evaluate a feature flag.
+2. **Register the provider with OpenFeature**
 
 ```typescript
 import { OpenFeature } from '@openfeature/server-sdk';
@@ -52,18 +52,9 @@ const options: HyphenProviderOptions = {
 // };
 
 await OpenFeature.setProviderAndWait(new HyphenProvider(publicKey, options));
-
-const client = OpenFeature.getClient();
-
-const flagDetails = await client.getBooleanDetails('feature-flag-key', false);
-
-console.log(flagDetails.value); // true or false
 ```
 
-### Example: Contextual Evaluation
-
-To evaluate a feature flag with specific user or application context, define and pass an `EvaluationContext`:
-
+3. **Configure the context**: Define and pass an `EvaluationContext` needed for feature targeting evaluations, incorporating user or application context.
 ```typescript
 const context: HyphenEvaluationContext = {
   targetingKey: 'user-123',
@@ -84,6 +75,13 @@ const context: HyphenEvaluationContext = {
   },
 };
 
+```
+
+### Example: Context Evaluation
+Evaluate a feature flag using the OpenFeature client and context information:
+
+
+```TypeScript
 // Evaluate the toggle with context
 const flagDetailsWithContext = await client.getBooleanDetails(toggleKey, defaultValue, context);
 
@@ -94,13 +92,13 @@ console.log(flagDetailsWithContext.value); // true or false
 
 ### Options
 
-| Option              | Type    | Description                                                                         |
-|---------------------|---------|-------------------------------------------------------------------------------------|
-| `application`       | string  | The application id or alternate id.                                                 |
-| `environment`       | string  | The environment identifier for the Hyphen project (project environment ID or alternateId). |
-| `horizonUrls`       | string[] | An array of Hyphen Horizon URLs to use for fetching feature flags.                |
-| `enableToggleUsage` | boolean | Enable or disable the logging of toggle usage (telemetry).                          |
-| `cache`             | object  | Configuration for caching feature flag evaluations.                                 |
+| Option              | Type       | Required | Description                                                                                |
+| :------------------ | :--------- | :------- | :----------------------------------------------------------------------------------------- |
+| `application`       | `string`   | Yes      | The application id or alternate ID.                                                        |
+| `environment`       | `string`   | Yes      | The environment identifier for the Hyphen project (project environment ID or alternateId). |
+| `horizonUrls`       | `string[]` | No       | Hyphen Horizon URLs for fetching flags.                                                    |
+| `enableToggleUsage` | `boolean`  | No       | Enable/disable telemetry (default: true).                                                  |
+| `cache`             | object     | No       | Configuration for caching feature flag evaluations.                                        |
 
 ### Cache Configuration
 
@@ -134,18 +132,16 @@ const options: HyphenProviderOptions = {
 Provide an `EvaluationContext` to pass contextual data for feature evaluation.
 
 ### Context Fields
-
-| Field               | Type                 | Description                                                                 |
-|---------------------|----------------------|-----------------------------------------------------------------------------|
-| `targetingKey`      | `string`            | The key used for caching the evaluation response.                          |
-| `environment`       | `string`            | The environment identifier for the Hyphen project (project environment ID or alternateId). |
-| `ipAddress`         | `string`            | The IP address of the user making the request.                             |
-| `customAttributes`  | `Record<string, any>` | Custom attributes for additional contextual information.                   |
-| `user`              | `object`            | An object containing user-specific information for the evaluation.         |
-| `user.id`           | `string`            | The unique identifier of the user.                                         |
-| `user.email`        | `string`            | The email address of the user.                                             |
-| `user.name`         | `string`            | The name of the user.                                                      |
-| `user.customAttributes` | `Record<string, any>` | Custom attributes specific to the user.                                    |
+| Field                   | Type                  | Required | Description                                                        |
+| ----------------------- | --------------------- | :------- | ------------------------------------------------------------------ |
+| `targetingKey`          | `string`              | Yes      | The key used for caching the evaluation response.                  |
+| `ipAddress`             | `string`              | No       | The IP address of the user making the request.                     |
+| `customAttributes`      | `Record<string, any>` | No       | Custom attributes for additional contextual information.           |
+| `user`                  | `object`              | No       | An object containing user-specific information for the evaluation. |
+| `user.id`               | `string`              | No       | The unique identifier of the user.                                 |
+| `user.email`            | `string`              | No       | The email address of the user.                                     |
+| `user.name`             | `string`              | No       | The name of the user.                                              |
+| `user.customAttributes` | `Record<string, any>` | No       | Custom attributes specific to the user.                            |
 
 ## Contributing
 
